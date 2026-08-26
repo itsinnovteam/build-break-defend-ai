@@ -19,13 +19,13 @@ DevOps/SRE, security engineers, and anyone technically strong but new to buildin
 
 | Module | Topics | Lab |
 |---|---|---|
-| 0 – How LLMs actually work | tokens, context window, hallucinations, sampling/temperature, capabilities & limits | Induce hallucinations, test security threads, learn when the model is reliable |
-| 1 – Practical fluency | prompting, structured outputs, custom instructions, feeding context, iterative refinement | Chat to tool — real work, locking format, stress-testing trust |
-| 2 – AI in the engineering & security workflow | best practices, review discipline, failure modes, security uses | Trust but verify AI code — hunt the issue, fix, meta-review |
-| 3 – From chat to API | messages/roles, system prompts, structured output, cost/tokens, security | Build a CLI triage tool |
-| 4 – Grounding AI in internal data (RAG) | why RAG, the pipeline, tradeoffs, access control, data residency | Build a RAG assistant, then break its access control |
-| 5 – Agents and automation | tool calling, agent loop, MCP, when not to use agents, securing agent tools | Build an agent, then hijack it |
-| 6 – Secure AI engineering | threat modeling, OWASP LLM Top 10, data governance, deployment patterns, compliance | Make the Lab 5 agent deployment-grade — a threat model defensible in front of a CISO |
+| 0 - How LLMs actually work | tokens, context window, hallucinations, sampling/temperature, capabilities & limits | Induce hallucinations, test security threads, learn when the model is reliable |
+| 1 - Practical fluency | prompting, structured outputs, custom instructions, feeding context, iterative refinement | Chat to tool - real work, locking format, stress-testing trust |
+| 2 - AI in the engineering & security workflow | best practices, review discipline, failure modes, security uses | Trust but verify AI code - hunt the issue, fix, meta-review |
+| 3 - From chat to API | messages/roles, system prompts, structured output, cost/tokens, security | Build a CLI triage tool |
+| 4 - Grounding AI in internal data (RAG) | why RAG, the pipeline, tradeoffs, access control, data residency | Build a RAG assistant, then break its access control |
+| 5 - Agents and automation | tool calling, agent loop, MCP, when not to use agents, securing agent tools | Build an agent, then hijack it |
+| 6 - Secure AI engineering | threat modeling, OWASP LLM Top 10, data governance, deployment patterns, compliance | Make the Lab 5 agent deployment-grade - a threat model defensible in front of a CISO |
 
 ## Repository structure
 
