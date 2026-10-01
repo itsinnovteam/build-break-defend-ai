@@ -32,15 +32,12 @@ DevOps/SRE, security engineers, and anyone technically strong but new to buildin
 ```
 build-break-defend-ai/
 ├── README.md
-├── CONTRIBUTING.md
-├── docs/
-│   ├── prerequisites.md
-│   └── facilitator-guide.md
 │
 ├── modules/
 │   ├── 00-how-llms-work/
 │   │   ├── README.md
-│   │   └── lab/
+│   │   └── lab-0/
+│   │   └── Module 0 - How LLMs Actually Work.pdf
 │   ├── 01-practical-fluency/
 │   │   ├── README.md
 │   │   └── lab/
