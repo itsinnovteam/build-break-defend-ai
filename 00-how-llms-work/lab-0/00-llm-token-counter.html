@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Token Counter</title>
+<style>
+  :root {
+    --ink: #1c1b1a;
+    --paper: #faf9f6;
+    --rule: #d8d4cb;
+    --accent: #2f5d50;
+    --accent-soft: #e4ede9;
+    --warn: #b5551e;
+    --mono: "IBM Plex Mono", "SF Mono", Consolas, monospace;
+    --serif: "IBM Plex Serif", Georgia, serif;
+    --t0: #dbeee7; --t1: #f6e3c5; --t2: #e3ddf4; --t3: #f9d9d9;
+    --t4: #d8ecf7; --t5: #efe3c8; --t6: #dcecd0; --t7: #f0dced;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px 80px;
+  }
+  .wrap { width: 100%; max-width: 820px; }
+  header { margin-bottom: 28px; border-bottom: 2px solid var(--ink); padding-bottom: 16px; }
+  h1 { font-size: 28px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .sub { font-family: var(--mono); font-size: 12.5px; color: #6b6862; letter-spacing: 0.02em; }
+
+  textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 14.5px;
+    line-height: 1.55;
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    background: #fff;
+    resize: vertical;
+    color: var(--ink);
+  }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .totals {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin: 22px 0 8px;
+  }
+  .stat { background: var(--paper); padding: 14px 12px; text-align: center; }
+  .stat .n { font-family: var(--mono); font-size: 26px; font-weight: 600; color: var(--accent); display: block; }
+  .stat .l { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: #6b6862; }
+
+  .method {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: #6b6862;
+    margin: 6px 0 26px;
+    line-height: 1.7;
+  }
+  .method b { color: var(--ink); }
+
+  h2 {
+    font-size: 15px;
+    margin: 34px 0 4px;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .hint { font-family: var(--mono); font-size: 11px; color: #6b6862; margin: 0 0 14px; }
+
+  .tokenview {
+    border: 1.5px solid var(--ink);
+    border-radius: 3px;
+    background: #fff;
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 14.5px;
+    line-height: 2.3;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .tok {
+    border-radius: 3px;
+    padding: 1px 0;
+    cursor: default;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.05) inset;
+  }
+  .tok.t0 { background: var(--t0); } .tok.t1 { background: var(--t1); }
+  .tok.t2 { background: var(--t2); } .tok.t3 { background: var(--t3); }
+  .tok.t4 { background: var(--t4); } .tok.t5 { background: var(--t5); }
+  .tok.t6 { background: var(--t6); } .tok.t7 { background: var(--t7); }
+  .tok:hover { box-shadow: 0 0 0 1.5px var(--accent) inset; }
+
+  .wordgroup {
+    border-bottom: 2px dashed var(--warn);
+    padding-bottom: 2px;
+    position: relative;
+  }
+  .wordgroup::after {
+    content: attr(data-count);
+    position: relative;
+    top: -6px;
+    font-size: 9px;
+    font-family: var(--mono);
+    color: var(--warn);
+    font-weight: 700;
+    margin-left: 1px;
+  }
+
+  .legend { display: flex; gap: 18px; align-items: center; margin: 10px 0 0; flex-wrap: wrap; }
+  .legend-item { font-family: var(--mono); font-size: 11px; color: #6b6862; display: flex; align-items: center; gap: 6px; }
+  .swatch { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  .swatch.multi { border-bottom: 2px dashed var(--warn); background: var(--t3); }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left; font-family: var(--mono); font-size: 10.5px;
+    text-transform: uppercase; letter-spacing: 0.06em; color: #6b6862;
+    padding: 8px 10px; border-bottom: 2px solid var(--ink);
+  }
+  tbody td { padding: 10px; border-bottom: 1px solid var(--rule); font-size: 14px; vertical-align: top; }
+  tbody tr:hover { background: var(--accent-soft); }
+  td.num { font-family: var(--mono); text-align: right; white-space: nowrap; color: var(--accent); font-weight: 600; }
+  td.idx { font-family: var(--mono); color: #a19d92; width: 28px; }
+  td.pieces { font-family: var(--mono); font-size: 13px; color: var(--warn); }
+  .empty { text-align: center; color: #a19d92; font-family: var(--mono); font-size: 13px; padding: 30px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Token Counter</h1>
+    <div class="sub">paste text — see estimated tokens, including words that split into more than one</div>
+  </header>
+
+  <textarea id="input" placeholder="Paste or type your text here...">Automation turns tedious repeat work into something that just happens. This tokenization tool estimates unbelievably complicated words like internationalization or misunderstanding, which usually cost more than one token.</textarea>
+
+  <div class="totals">
+    <div class="stat"><span class="n" id="totalTokens">0</span><span class="l">Tokens</span></div>
+    <div class="stat"><span class="n" id="totalSentences">0</span><span class="l">Sentences</span></div>
+    <div class="stat"><span class="n" id="totalWords">0</span><span class="l">Words</span></div>
+    <div class="stat"><span class="n" id="totalMulti">0</span><span class="l">Multi‑token words</span></div>
+  </div>
+  <div class="method">
+    Estimate starts from the GPT-2/GPT-4 pretokenization pattern (splits on words, numbers, punctuation, whitespace), then applies a <b>morphological heuristic</b> — stripping common prefixes/suffixes (-ization, -tion, -able, un-, re-, etc.) — to guess where long or complex words would further split under real byte-pair encoding. This is an approximation: real tokenizers use a trained merge list of ~50,000–100,000 entries, so some words shown here as one token may actually split, and vice versa. Runs entirely in your browser; nothing is sent anywhere. For an exact count against a specific model, use that provider's official tokenizer.
+  </div>
+
+  <h2>Tokenized text</h2>
+  <p class="hint">each shaded block is one estimated token — hover for its index and exact text. Words outlined with a dashed underline are estimated to cost more than one token; the small number shows how many.</p>
+  <div class="tokenview" id="tokenview"></div>
+  <div class="legend">
+    <span class="legend-item"><span class="swatch" style="background:var(--t0)"></span> single token</span>
+    <span class="legend-item"><span class="swatch multi"></span> word split into multiple tokens</span>
+  </div>
+
+  <h2>Multi-token words</h2>
+  <p class="hint">every word in your text estimated to cost more than one token, with its guessed split</p>
+  <table id="multiTable">
+    <thead><tr><th></th><th>Word</th><th>Estimated split</th><th>Tokens</th><th>Occurrences</th></tr></thead>
+    <tbody id="multiRows"></tbody>
+  </table>
+  <div class="empty" id="multiEmpty" style="display:none">No multi-token words detected — everything here is estimated as single tokens.</div>
+
+  <h2>By sentence</h2>
+  <table>
+    <thead><tr><th></th><th>Sentence</th><th>Words</th><th>Tokens</th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="empty" id="emptyMsg" style="display:none">Nothing to show yet — type something above.</div>
+</div>
+
+<script>
+// ---- base pretokenizer (GPT-2/tiktoken style word/number/punct/space boundaries) ----
+const TOKEN_RE = /'s|'t|'re|'ve|'m|'ll|'d| ?[a-zA-Z]+| ?[0-9]+| ?[^\sa-zA-Z0-9]+|\s+(?!\S)|\s+/g;
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function segmentText(text) {
+  const segs = [];
+  let lastIndex = 0;
+  const re = new RegExp(TOKEN_RE.source, 'g');
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > lastIndex) segs.push({ text: text.slice(lastIndex, m.index), matched: false });
+    segs.push({ text: m[0], matched: true });
+    lastIndex = m.index + m[0].length;
+    if (m[0].length === 0) re.lastIndex++;
+  }
+  if (lastIndex < text.length) segs.push({ text: text.slice(lastIndex), matched: false });
+  return segs;
+}
+
+// ---- morphological subword heuristic ----
+const PREFIXES = ['international','multi','micro','macro','pseudo','under','inter','super','anti','auto','over','semi','post','non','pre','dis','mis','out','sub','un','re','de','en','em','co'];
+const SUFFIXES = ['ization','ications','ically','ations','iveness','fully','ously','ition','ities','ation','ement','ology','ology','ative','ative','ible','able','ness','ment','tion','sion','edly','ing','ers','est','ful','ous','ive','ial','ic','al','er','ed','ly'];
+PREFIXES.sort((a,b)=>b.length-a.length);
+SUFFIXES.sort((a,b)=>b.length-a.length);
+
+function approxSubwordSplit(word) {
+  if (word.length < 8) return [word]; // short words: treat as one token
+  let prefix = '';
+  let stem = word;
+  const lower = word.toLowerCase();
+  for (const p of PREFIXES) {
+    if (lower.startsWith(p) && stem.length - p.length >= 5) {
+      prefix = word.slice(0, p.length);
+      stem = word.slice(p.length);
+      break;
+    }
+  }
+  const suffixParts = [];
+  let changed = true;
+  let guard = 0;
+  while (changed && stem.length > 5 && guard < 3) {
+    changed = false; guard++;
+    const stemLower = stem.toLowerCase();
+    for (const suf of SUFFIXES) {
+      if (stemLower.endsWith(suf) && stem.length - suf.length >= 3) {
+        suffixParts.unshift(stem.slice(stem.length - suf.length));
+        stem = stem.slice(0, stem.length - suf.length);
+        changed = true;
+        break;
+      }
+    }
+  }
+  const pieces = [];
+  if (prefix) pieces.push(prefix);
+  pieces.push(stem);
+  pieces.push(...suffixParts);
+  return pieces.length > 1 ? pieces : [word];
+}
+
+// ---- combine into full token pieces (flat, in order, reconstructs original text) ----
+function tokenizePieces(text) {
+  const segs = segmentText(text);
+  const pieces = [];
+  segs.forEach(seg => {
+    if (!seg.matched) {
+      pieces.push({ text: seg.text, groupSize: 1, groupStart: true, groupWord: null });
+      return;
+    }
+    const isWord = /^ ?[a-zA-Z]+$/.test(seg.text);
+    if (isWord) {
+      const hasSpace = seg.text.startsWith(' ');
+      const letters = hasSpace ? seg.text.slice(1) : seg.text;
+      const subs = approxSubwordSplit(letters);
+      subs.forEach((p, i) => {
+        pieces.push({
+          text: (i === 0 && hasSpace) ? (' ' + p) : p,
+          groupSize: subs.length,
+          groupStart: i === 0,
+          groupWord: subs.length > 1 ? letters : null
+        });
+      });
+    } else {
+      pieces.push({ text: seg.text, groupSize: 1, groupStart: true, groupWord: null });
+    }
+  });
+  return pieces;
+}
+
+function countTokens(str) {
+  return str ? tokenizePieces(str).length : 0;
+}
+
+function splitSentences(text) {
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+  const parts = trimmed.match(/[^.!?]+[.!?]+(\s+|$)|[^.!?]+$/g);
+  return (parts || [trimmed]).map(s => s.trim()).filter(Boolean);
+}
+
+function renderTokenView(text) {
+  const container = document.getElementById('tokenview');
+  container.innerHTML = '';
+  if (!text) {
+    container.innerHTML = '<span class="empty" style="padding:0">Nothing to show yet.</span>';
+    return { multiMap: new Map() };
+  }
+  const pieces = tokenizePieces(text);
+  const frag = document.createDocumentFragment();
+  const multiMap = new Map(); // word(lower) -> {word, pieces, count, occurrences}
+  let tokenIndex = 0;
+  let i = 0;
+  while (i < pieces.length) {
+    const p = pieces[i];
+    if (p.groupSize > 1 && p.groupStart) {
+      const wrapper = document.createElement('span');
+      wrapper.className = 'wordgroup';
+      wrapper.dataset.count = p.groupSize;
+      const groupPieces = [];
+      for (let k = 0; k < p.groupSize; k++) {
+        const piece = pieces[i + k];
+        const span = document.createElement('span');
+        span.className = 'tok t' + (tokenIndex % 8);
+        span.textContent = piece.text;
+        span.title = 'token #' + (tokenIndex + 1) + ': "' + piece.text + '"';
+        tokenIndex++;
+        wrapper.appendChild(span);
+        groupPieces.push(piece.text.trim());
+      }
+      wrapper.title = p.groupWord + ' → estimated ' + p.groupSize + ' tokens';
+      frag.appendChild(wrapper);
+
+      const key = p.groupWord.toLowerCase();
+      if (multiMap.has(key)) {
+        multiMap.get(key).occurrences++;
+      } else {
+        multiMap.set(key, { word: p.groupWord, pieces: groupPieces, count: p.groupSize, occurrences: 1 });
+      }
+      i += p.groupSize;
+    } else {
+      const span = document.createElement('span');
+      span.className = 'tok t' + (tokenIndex % 8);
+      span.textContent = p.text;
+      span.title = 'token #' + (tokenIndex + 1) + ': "' + p.text + '"';
+      tokenIndex++;
+      frag.appendChild(span);
+      i += 1;
+    }
+  }
+  container.appendChild(frag);
+  return { multiMap };
+}
+
+function renderMultiTable(multiMap) {
+  const rowsEl = document.getElementById('multiRows');
+  const emptyEl = document.getElementById('multiEmpty');
+  rowsEl.innerHTML = '';
+  const entries = Array.from(multiMap.values()).sort((a, b) => (b.occurrences - a.occurrences) || (b.count - a.count));
+  if (entries.length === 0) {
+    emptyEl.style.display = 'block';
+  } else {
+    emptyEl.style.display = 'none';
+    entries.forEach((e, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="idx">${i + 1}</td>
+        <td>${escapeHtml(e.word)}</td>
+        <td class="pieces">${e.pieces.map(escapeHtml).join(' + ')}</td>
+        <td class="num">${e.count}</td>
+        <td class="num">${e.occurrences}</td>
+      `;
+      rowsEl.appendChild(tr);
+    });
+  }
+  document.getElementById('totalMulti').textContent = entries.length;
+}
+
+function render() {
+  const text = document.getElementById('input').value;
+  const sentences = splitSentences(text);
+  const rowsEl = document.getElementById('rows');
+  const emptyEl = document.getElementById('emptyMsg');
+  rowsEl.innerHTML = '';
+
+  if (sentences.length === 0) {
+    emptyEl.style.display = 'block';
+  } else {
+    emptyEl.style.display = 'none';
+    sentences.forEach((s, i) => {
+      const words = (s.match(/\S+/g) || []).length;
+      const tokens = countTokens(s);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="idx">${i + 1}</td>
+        <td>${escapeHtml(s)}</td>
+        <td class="num">${words}</td>
+        <td class="num">${tokens}</td>
+      `;
+      rowsEl.appendChild(tr);
+    });
+  }
+
+  document.getElementById('totalTokens').textContent = countTokens(text);
+  document.getElementById('totalSentences').textContent = sentences.length;
+  document.getElementById('totalWords').textContent = (text.match(/\S+/g) || []).length;
+
+  const { multiMap } = renderTokenView(text);
+  renderMultiTable(multiMap);
+}
+
+document.getElementById('input').addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
