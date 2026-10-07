@@ -36,26 +36,36 @@ build-break-defend-ai/
 ├── modules/
 │   ├── 00-how-llms-work/
 │   │   ├── README.md
-│   │   └── lab-0/
+│   │   └── lab-00/
+│   │   └── simulations/
 │   │   └── Module0-HowLLMsActuallyWork.pdf
 │   ├── 01-practical-fluency/
 │   │   ├── README.md
-│   │   └── lab/
+│   │   └── lab-01/
+│   │   	└── prompts/
+│   │   	└── README.txt
+│   │   	└── lab1_worksheet.txt
+│   │   └── simulations/
 │   ├── 02-ai-in-the-workflow/
 │   │   ├── README.md
-│   │   └── lab/
+│   │   └── lab-02/
+│   │   └── simulations/
 │   ├── 03-chat-to-api/
 │   │   ├── README.md
-│   │   └── lab/
+│   │   └── lab-03/
+│   │   └── simulations/
 │   ├── 04-grounding-with-rag/
 │   │   ├── README.md
-│   │   └── lab/          # includes attack/ for breaking access control
+│   │   └── lab-04/          # includes attack/ for breaking access control
+│   │   └── simulations/
 │   ├── 05-agents-and-automation/
 │   │   ├── README.md
-│   │   └── lab/          # includes attack/ for hijacking the agent
+│   │   └── lab-05/          # includes attack/ for hijacking the agent
+│   │   └── simulations/
 │   └── 06-secure-ai-engineering/
 │       ├── README.md
-│       └── lab/
+│       └── lab-06/
+│   │   └── simulations/
 │
 └── shared/
     ├── prompts/
