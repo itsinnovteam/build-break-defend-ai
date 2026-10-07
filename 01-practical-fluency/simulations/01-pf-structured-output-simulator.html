@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2. Structured outputs | Module 1 Practical Fluency</title>
+<style>
+:root{--ink:#0E3B43;--steel:#4B6475;--mist:#EEF3F5;--line:#D3DEE4;--amber:#7A4FA3;
+--amber-soft:#F0E9F7;--teal:#2B7BB9;--teal-soft:#E4F0F8;--red:#B83227;--red-soft:#F8E1DE;--paper:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Calibri,Arial,sans-serif;color:var(--ink);background:var(--paper);line-height:1.55;font-size:16px}
+header{background:var(--ink);color:#fff;padding:22px 24px 18px}
+header .mod{font-size:14px;opacity:.8;margin:0}
+header h1{margin:4px 0 6px;font-family:Cambria,Georgia,serif;font-size:30px;font-weight:700}
+header .note{font-size:13px;opacity:.85;margin:0}
+main{max-width:980px;margin:0 auto;padding:22px 20px 40px}
+h2{font-family:Cambria,Georgia,serif;font-size:22px;margin:26px 0 8px}
+p{margin:6px 0 10px;max-width:75ch}
+.box{background:var(--mist);border-radius:10px;padding:16px 18px;margin:12px 0}
+.goal{background:var(--amber-soft)}
+.good{background:var(--teal-soft)}
+.bad{background:var(--red-soft)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+button{font:inherit;font-size:15px;border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;margin:4px 6px 4px 0}
+button:hover{background:var(--mist)}
+button.primary{background:var(--ink);color:#fff}
+button.primary:hover{background:#16525D}
+button.on{background:var(--teal);border-color:var(--teal);color:#fff}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+pre,.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+pre{background:#0A2C33;color:#E6EDF5;border-radius:10px;padding:14px 16px;white-space:pre-wrap;word-break:break-word;margin:10px 0;min-height:44px}
+.out{background:#fff;border:2px solid var(--line);border-radius:10px;padding:14px 16px;min-height:60px;white-space:pre-wrap}
+.tag{display:inline-block;font-size:13px;padding:2px 10px;border-radius:20px;background:var(--mist);margin-right:6px}
+.tag.ok{background:var(--teal-soft);color:#1C4F78}.tag.no{background:var(--red-soft);color:#7a1d16}.tag.warn{background:var(--amber-soft);color:#4E2F6E}
+.meter{height:14px;background:var(--mist);border-radius:8px;overflow:hidden;margin:6px 0}
+.meter>div{height:100%;background:var(--teal);width:0;transition:width .3s}
+.card{border:2px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;background:#fff}
+.card.sel{border-color:var(--teal);background:var(--teal-soft)}
+.card.blocked{border-color:var(--red);background:var(--red-soft)}
+.hidden{display:none}
+.learn{border-left:0;background:var(--teal-soft);border-radius:10px;padding:14px 18px;margin-top:18px}
+nav.pager{display:flex;justify-content:space-between;gap:10px;margin-top:30px;padding-top:14px;border-top:1px solid var(--line)}
+nav.pager a{color:var(--ink);font-weight:600}
+ins{background:#E4F0F8;text-decoration:none;color:#1C4F78}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td,th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--mist)}
+.small{font-size:14px;color:var(--steel)}
+.howto{background:#fff;border:2px solid var(--line);border-radius:10px;padding:12px 18px 12px 38px;margin:12px 0}
+.howto li{margin:4px 0}
+.m0{display:block;margin-top:8px;font-size:15px}
+#prog{font-size:14px;color:var(--steel);margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){.meter>div{transition:none}}
+</style></head>
+<body>
+<header><p class="mod">AI Bootcamp &middot; Module 1: Practical fluency</p>
+<h1>2. Structured outputs</h1>
+<p class="note">Simulation: all AI answers here are pre-written examples. No real AI is called and no data leaves this page.</p></header>
+<main>
+
+<div class="box goal"><b>Goal:</b> see why tools need structured (machine-readable) answers.<br>
+<b>Think of it like...</b> a handwritten note versus a filled-in form with fixed boxes. A person can read both, but a computer can only read the form.<span class="m0"><b>From Module 0: temperature changed the answer every run. A locked format keeps the shape the same.</b></span></div>
+<ol class="howto"><li>Choose <b>A</b>, then click <b>Send to ticket system</b>.</li><li>Do the same with <b>B</b> and <b>C</b>.</li><li>Compare the three results, then read <b>What you learned</b>.</li></ol>
+<p id="prog">Explored: 0 of 3</p>
+<h2>Scenario</h2>
+<p>Your SOC wants AI triage results to go straight into the ticketing system. Pick how you ask the AI, then click <b>Send to ticket system</b>. The parser below is real JavaScript (<span class="mono">JSON.parse</span>), not a fake.</p>
+<button id="b_free">A. Ask in free text</button>
+<button id="b_json">B. Ask with locked JSON format</button>
+<button id="b_bad">C. JSON, but wrong values</button>
+<h2>AI answer</h2>
+<pre id="ai">Choose A, B, or C.</pre>
+<button class="primary" id="send">Send to ticket system</button>
+<h2>Ticket system result</h2>
+<div class="out" id="ticket">Waiting for input.</div>
+<div class="learn hidden" id="learn"><b>What you learned</b><br>
+1. Free text breaks tools: the parser cannot read sentences.<br>
+2. A locked format (JSON schema) gives the same fields every time.<br>
+3. Valid JSON is not the same as correct data. Always check values too (allowed severities, number ranges).
+This is exactly what Lab 1 does with Python.</div>
+
+<nav class="pager"><a href="01-pf-build-a-prompt-simulator.html">&larr; 1. Prompting that works</a> <a href="01-pf-custom-instructions-simulator.html">3. Custom instructions and projects &rarr;</a></nav>
+</main>
+<script>
+function $(id){return document.getElementById(id);}
+var SEEN={},TOTAL=0;function seen(k){SEEN[k]=1;var n=Object.keys(SEEN).length,el=document.getElementById("prog");if(el)el.textContent=n>=TOTAL?"All "+TOTAL+" explored. Nice work.":"Explored: "+n+" of "+TOTAL;}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+TOTAL=3;
+var answers={
+ free:"Sure! This alert looks pretty serious to me. I would call it high severity because someone logged in as root after 45 failed attempts. You should check it soon.",
+ json:'{\n  "severity": "high",\n  "category": "brute_force",\n  "summary": "45 failed SSH root logins from 203.0.113.45, then 1 success.",\n  "recommended_action": "Verify the successful login with the server owner.",\n  "confidence": 85\n}',
+ bad:'{\n  "severity": "VERY BAD!!",\n  "category": "brute_force",\n  "summary": "Root brute force with success.",\n  "recommended_action": "Block everything.",\n  "confidence": 450\n}'};
+var current=null;
+function pick(k){current=k;["free","json","bad"].forEach(function(x){$("b_"+x).className=(x===k?"on":"");});$("ai").textContent=answers[k];$("ticket").textContent="Click Send to ticket system.";}
+$("b_free").onclick=function(){pick("free");};$("b_json").onclick=function(){pick("json");};$("b_bad").onclick=function(){pick("bad");};
+$("send").onclick=function(){
+  if(!current){$("ticket").textContent="Choose A, B, or C first.";return;}seen(current);
+  var data;
+  try{data=JSON.parse(answers[current]);}
+  catch(e){$("ticket").innerHTML='<span class="tag no">REJECTED</span> Parser error: '+esc(e.message)+'<br>No ticket created. The tool cannot read sentences.';$("learn").classList.remove("hidden");return;}
+  var errs=[];
+  if(["low","medium","high","critical"].indexOf(data.severity)<0)errs.push('severity "'+data.severity+'" is not one of low/medium/high/critical');
+  if(typeof data.confidence!=="number"||data.confidence<0||data.confidence>100)errs.push("confidence "+data.confidence+" is outside 0-100");
+  if(errs.length){$("ticket").innerHTML='<span class="tag warn">PARSED, BUT INVALID</span><br>'+errs.map(esc).join("<br>")+'<br>No ticket created. Valid JSON, wrong values.';}
+  else{$("ticket").innerHTML='<span class="tag ok">TICKET CREATED</span> SOC-10482<br><table><tr><th>Severity</th><td>'+esc(data.severity)+'</td></tr><tr><th>Category</th><td>'+esc(data.category)+'</td></tr><tr><th>Summary</th><td>'+esc(data.summary)+'</td></tr><tr><th>Next step</th><td>'+esc(data.recommended_action)+'</td></tr><tr><th>Confidence</th><td>'+esc(data.confidence)+'</td></tr></table>';}
+  $("learn").classList.remove("hidden");
+};
+
+</script>
+</body></html>

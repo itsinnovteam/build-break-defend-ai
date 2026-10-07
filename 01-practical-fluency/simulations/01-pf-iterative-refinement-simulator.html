@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5. Iterative refinement | Module 1 Practical Fluency</title>
+<style>
+:root{--ink:#0E3B43;--steel:#4B6475;--mist:#EEF3F5;--line:#D3DEE4;--amber:#7A4FA3;
+--amber-soft:#F0E9F7;--teal:#2B7BB9;--teal-soft:#E4F0F8;--red:#B83227;--red-soft:#F8E1DE;--paper:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Calibri,Arial,sans-serif;color:var(--ink);background:var(--paper);line-height:1.55;font-size:16px}
+header{background:var(--ink);color:#fff;padding:22px 24px 18px}
+header .mod{font-size:14px;opacity:.8;margin:0}
+header h1{margin:4px 0 6px;font-family:Cambria,Georgia,serif;font-size:30px;font-weight:700}
+header .note{font-size:13px;opacity:.85;margin:0}
+main{max-width:980px;margin:0 auto;padding:22px 20px 40px}
+h2{font-family:Cambria,Georgia,serif;font-size:22px;margin:26px 0 8px}
+p{margin:6px 0 10px;max-width:75ch}
+.box{background:var(--mist);border-radius:10px;padding:16px 18px;margin:12px 0}
+.goal{background:var(--amber-soft)}
+.good{background:var(--teal-soft)}
+.bad{background:var(--red-soft)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+button{font:inherit;font-size:15px;border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;margin:4px 6px 4px 0}
+button:hover{background:var(--mist)}
+button.primary{background:var(--ink);color:#fff}
+button.primary:hover{background:#16525D}
+button.on{background:var(--teal);border-color:var(--teal);color:#fff}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+pre,.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+pre{background:#0A2C33;color:#E6EDF5;border-radius:10px;padding:14px 16px;white-space:pre-wrap;word-break:break-word;margin:10px 0;min-height:44px}
+.out{background:#fff;border:2px solid var(--line);border-radius:10px;padding:14px 16px;min-height:60px;white-space:pre-wrap}
+.tag{display:inline-block;font-size:13px;padding:2px 10px;border-radius:20px;background:var(--mist);margin-right:6px}
+.tag.ok{background:var(--teal-soft);color:#1C4F78}.tag.no{background:var(--red-soft);color:#7a1d16}.tag.warn{background:var(--amber-soft);color:#4E2F6E}
+.meter{height:14px;background:var(--mist);border-radius:8px;overflow:hidden;margin:6px 0}
+.meter>div{height:100%;background:var(--teal);width:0;transition:width .3s}
+.card{border:2px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;background:#fff}
+.card.sel{border-color:var(--teal);background:var(--teal-soft)}
+.card.blocked{border-color:var(--red);background:var(--red-soft)}
+.hidden{display:none}
+.learn{border-left:0;background:var(--teal-soft);border-radius:10px;padding:14px 18px;margin-top:18px}
+nav.pager{display:flex;justify-content:space-between;gap:10px;margin-top:30px;padding-top:14px;border-top:1px solid var(--line)}
+nav.pager a{color:var(--ink);font-weight:600}
+ins{background:#E4F0F8;text-decoration:none;color:#1C4F78}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td,th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--mist)}
+.small{font-size:14px;color:var(--steel)}
+.howto{background:#fff;border:2px solid var(--line);border-radius:10px;padding:12px 18px 12px 38px;margin:12px 0}
+.howto li{margin:4px 0}
+.m0{display:block;margin-top:8px;font-size:15px}
+#prog{font-size:14px;color:var(--steel);margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){.meter>div{transition:none}}
+</style></head>
+<body>
+<header><p class="mod">AI Bootcamp &middot; Module 1: Practical fluency</p>
+<h1>5. Iterative refinement</h1>
+<p class="note">Simulation: all AI answers here are pre-written examples. No real AI is called and no data leaves this page.</p></header>
+<main>
+
+<div class="box goal"><b>Goal:</b> improve an AI answer step by step, changing one thing at a time.<br>
+<b>Think of it like...</b> adjusting a shower. You turn the knob a little, feel the water, and adjust again. Turning every knob at once means you never learn which one worked.</div>
+<ol class="howto"><li>Read Version 1 and ask: who is it written for?</li><li>Click one feedback button at a time and compare the new prompt and answer.</li><li>Finally try <b>Make it better</b> and see why vague feedback fails.</li></ol>
+<p id="prog">Explored: 0 of 4</p>
+<h2>Scenario</h2>
+<p>You need an incident summary for your manager (not technical) about alert A2: a root brute force on srv-web-01. Version 1 is below. Click one feedback button at a time and watch what changes.</p>
+<div id="fb"></div>
+<div class="grid2">
+<div><h2>Prompt <span class="tag" id="ver">Version 1</span></h2><pre id="prompt"></pre></div>
+<div><h2>AI answer</h2><div class="out" id="ans"></div></div>
+</div>
+<button id="reset">Start over</button>
+<div class="learn hidden" id="learn"><b>What you learned</b><br>
+1. The first answer is a draft, not the final product.<br>
+2. Give specific feedback ("write for a non-technical manager"), not vague feedback ("make it better").<br>
+3. Change one thing per round so you know what helped. When you get a version you like, save the prompt as a template.</div>
+
+<nav class="pager"><a href="01-pf-feeding-the-context-simulator.html">&larr; 4. Feeding the context</a> <a href="01-pf-when-to-trust-simulator.html">6. When to trust &rarr;</a></nav>
+</main>
+<script>
+function $(id){return document.getElementById(id);}
+var SEEN={},TOTAL=0;function seen(k){SEEN[k]=1;var n=Object.keys(SEEN).length,el=document.getElementById("prog");if(el)el.textContent=n>=TOTAL?"All "+TOTAL+" explored. Nice work.":"Explored: "+n+" of "+TOTAL;}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+TOTAL=4;
+var fixes=[
+ {k:"aud",label:"Write for a non-technical manager",line:"Audience: a non-technical manager. Avoid jargon."},
+ {k:"short",label:"Keep it under 80 words",line:"Length: under 80 words."},
+ {k:"time",label:"Add a short timeline",line:"Include a 3-line timeline with times."},
+ {k:"next",label:"End with clear next steps",line:"End with 2 next steps and who owns them."}];
+var applied=[];
+function render(){
+ var h="";fixes.forEach(function(f){var used=applied.indexOf(f.k)>=0;h+='<button id="f_'+f.k+'" '+(used?'class="on" disabled':'')+'>'+(used?"&#10003; ":"")+esc(f.label)+'</button>';});
+ h+='<button id="f_vague">Make it better</button>';$("fb").innerHTML=h;
+ fixes.forEach(function(f){if(applied.indexOf(f.k)<0)$("f_"+f.k).onclick=function(){applied.push(f.k);seen(f.k);render();$("learn").classList.remove("hidden");};});
+ $("f_vague").onclick=function(){$("ans").textContent="(You said 'make it better'. The AI changed a few words but nothing you actually needed. Vague feedback = random changes.)\n\n"+lastAnswer;$("learn").classList.remove("hidden");};
+ var p="Write an incident summary about alert A2.";applied.forEach(function(k){fixes.forEach(function(f){if(f.k===k)p+="\n<ins>"+esc(f.line)+"</ins>";});});
+ $("prompt").innerHTML=p;$("ver").textContent="Version "+(applied.length+1);
+ var has=function(k){return applied.indexOf(k)>=0;};
+ var a;
+ if(has("aud"))a="Someone repeatedly guessed the main administrator password on one of our public web servers and finally got in.";
+ else a="Alert A2: 45 failed SSH authentication attempts for UID 0 (root) from 203.0.113.45 against srv-web-01 between 02:10 and 02:12, followed by a successful authentication at 02:13, indicating a probable successful brute-force attack against sshd with possible privilege-level compromise.";
+ if(!has("short"))a+=(has("aud")?" This server is visible from the internet, so the risk is high. The attacker may have been able to change settings, read data, or install software. We are still checking what happened after they got in, and the investigation is ongoing with the team reviewing all the logs available to us.":" The source IP has no prior history in our environment. sshd configuration permits root login with password authentication, which violates hardening baseline HB-03. Further forensic analysis of bash history, cron, authorized_keys, and outbound connections is required.");
+ if(has("time"))a+="\n\nTimeline:\n02:10 Password guessing starts\n02:12 45 failed attempts\n02:13 Attacker logs in";
+ if(has("next"))a+="\n\nNext steps:\n1. Disconnect the server and check for changes (SOC Tier 2, today)\n2. Turn off direct admin login on all web servers (Server team, this week)";
+ lastAnswer=a;$("ans").textContent=a;}
+var lastAnswer="";
+$("reset").onclick=function(){applied=[];render();};
+render();
+
+</script>
+</body></html>

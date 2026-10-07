@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3. Custom instructions and projects | Module 1 Practical Fluency</title>
+<style>
+:root{--ink:#0E3B43;--steel:#4B6475;--mist:#EEF3F5;--line:#D3DEE4;--amber:#7A4FA3;
+--amber-soft:#F0E9F7;--teal:#2B7BB9;--teal-soft:#E4F0F8;--red:#B83227;--red-soft:#F8E1DE;--paper:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Calibri,Arial,sans-serif;color:var(--ink);background:var(--paper);line-height:1.55;font-size:16px}
+header{background:var(--ink);color:#fff;padding:22px 24px 18px}
+header .mod{font-size:14px;opacity:.8;margin:0}
+header h1{margin:4px 0 6px;font-family:Cambria,Georgia,serif;font-size:30px;font-weight:700}
+header .note{font-size:13px;opacity:.85;margin:0}
+main{max-width:980px;margin:0 auto;padding:22px 20px 40px}
+h2{font-family:Cambria,Georgia,serif;font-size:22px;margin:26px 0 8px}
+p{margin:6px 0 10px;max-width:75ch}
+.box{background:var(--mist);border-radius:10px;padding:16px 18px;margin:12px 0}
+.goal{background:var(--amber-soft)}
+.good{background:var(--teal-soft)}
+.bad{background:var(--red-soft)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+button{font:inherit;font-size:15px;border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;margin:4px 6px 4px 0}
+button:hover{background:var(--mist)}
+button.primary{background:var(--ink);color:#fff}
+button.primary:hover{background:#16525D}
+button.on{background:var(--teal);border-color:var(--teal);color:#fff}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+pre,.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+pre{background:#0A2C33;color:#E6EDF5;border-radius:10px;padding:14px 16px;white-space:pre-wrap;word-break:break-word;margin:10px 0;min-height:44px}
+.out{background:#fff;border:2px solid var(--line);border-radius:10px;padding:14px 16px;min-height:60px;white-space:pre-wrap}
+.tag{display:inline-block;font-size:13px;padding:2px 10px;border-radius:20px;background:var(--mist);margin-right:6px}
+.tag.ok{background:var(--teal-soft);color:#1C4F78}.tag.no{background:var(--red-soft);color:#7a1d16}.tag.warn{background:var(--amber-soft);color:#4E2F6E}
+.meter{height:14px;background:var(--mist);border-radius:8px;overflow:hidden;margin:6px 0}
+.meter>div{height:100%;background:var(--teal);width:0;transition:width .3s}
+.card{border:2px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;background:#fff}
+.card.sel{border-color:var(--teal);background:var(--teal-soft)}
+.card.blocked{border-color:var(--red);background:var(--red-soft)}
+.hidden{display:none}
+.learn{border-left:0;background:var(--teal-soft);border-radius:10px;padding:14px 18px;margin-top:18px}
+nav.pager{display:flex;justify-content:space-between;gap:10px;margin-top:30px;padding-top:14px;border-top:1px solid var(--line)}
+nav.pager a{color:var(--ink);font-weight:600}
+ins{background:#E4F0F8;text-decoration:none;color:#1C4F78}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td,th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--mist)}
+.small{font-size:14px;color:var(--steel)}
+.howto{background:#fff;border:2px solid var(--line);border-radius:10px;padding:12px 18px 12px 38px;margin:12px 0}
+.howto li{margin:4px 0}
+.m0{display:block;margin-top:8px;font-size:15px}
+#prog{font-size:14px;color:var(--steel);margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){.meter>div{transition:none}}
+</style></head>
+<body>
+<header><p class="mod">AI Bootcamp &middot; Module 1: Practical fluency</p>
+<h1>3. Custom instructions and projects</h1>
+<p class="note">Simulation: all AI answers here are pre-written examples. No real AI is called and no data leaves this page.</p></header>
+<main>
+
+<div class="box goal"><b>Goal:</b> see how saved instructions and project files change every answer.<br>
+<b>Think of it like...</b> the standing orders you give a new team member on day one. Those are custom instructions. A project is their desk drawer with the team's playbooks inside. You do not repeat them every time; they are always there.</div>
+<ol class="howto"><li>Click each of the 3 setups and compare the answers.</li><li>In Part B, decide for each item if it is safe to upload, then click it.</li><li>Read <b>What you learned</b>.</li></ol>
+<p id="prog">Explored: 0 of 9</p>
+<h2>Part A: same question, three setups</h2>
+<p>Question: <i>"A user says a popup asked for their password. What do I do?"</i></p>
+<button id="p0">No setup</button><button id="p1">Custom instructions</button><button id="p2">Project + playbook file</button>
+<div class="grid2">
+<div><h2>Active setup</h2><pre id="setup">Choose a setup.</pre></div>
+<div><h2>AI answer</h2><div class="out" id="ans">Choose a setup.</div></div>
+</div>
+<h2>Part B: what is safe to put in a project?</h2>
+<p>Click each item. Decide before you click!</p>
+<div id="items"></div>
+<div class="learn hidden" id="learn"><b>What you learned</b><br>
+Custom instructions set <b>who the AI is and how it answers</b>, every time. A project adds <b>your team's knowledge</b> (playbooks, templates).
+Only upload what your company has approved for that AI tool. Never upload secrets, credentials, or raw personal data.</div>
+
+<nav class="pager"><a href="01-pf-structured-output-simulator.html">&larr; 2. Structured outputs</a> <a href="01-pf-feeding-the-context-simulator.html">4. Feeding the context &rarr;</a></nav>
+</main>
+<script>
+function $(id){return document.getElementById(id);}
+var SEEN={},TOTAL=0;function seen(k){SEEN[k]=1;var n=Object.keys(SEEN).length,el=document.getElementById("prog");if(el)el.textContent=n>=TOTAL?"All "+TOTAL+" explored. Nice work.":"Explored: "+n+" of "+TOTAL;}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+TOTAL=9;
+var setups=[
+ {s:"(nothing saved)",a:"Popups asking for passwords can be scams. Tell the user not to enter their password. They could run an antivirus scan. If they already entered it, they should change it."},
+ {s:"Custom instructions:\n- I am a Tier-1 SOC analyst.\n- Answer in steps, max 6 steps.\n- Always say when to escalate.\n- Use our severity scale: low/medium/high/critical.",a:"1. Ask the user: did you type your password? (yes = high, no = medium)\n2. Get the hostname and a screenshot.\n3. Check EDR for the process that showed the popup.\n4. If password was typed: force a password reset.\n5. Search for the same popup on other hosts.\n6. Escalate to Tier 2 if malware is found or password was typed."},
+ {s:"Custom instructions (same as before)\n+ Project file: PB-07_Credential_Phishing_Playbook.pdf\n  (approved internal document)",a:"Following PB-07 (Credential Phishing):\n1. Classify: password typed = HIGH (PB-07 section 2).\n2. Isolate host via EDR if an unknown process is found (section 3.1).\n3. Reset password and revoke sessions (section 3.2).\n4. Open ticket with tag CRED-PHISH.\n5. Escalate to the Tier 2 on-call within 30 minutes (section 5).\nSource: PB-07 v2.1. Please confirm against the latest version."}];
+for(var i=0;i<3;i++){(function(i){$("p"+i).onclick=function(){seen("p"+i);for(var j=0;j<3;j++)$("p"+j).className=(j===i?"on":"");$("setup").textContent=setups[i].s;$("ans").textContent=setups[i].a;$("learn").classList.remove("hidden");};})(i);}
+var items=[
+ {t:"Phishing response playbook (approved internal document)",ok:true,f:"Safe if your company approved this AI tool for internal documents. This is what projects are for."},
+ {t:"Ticket template and severity definitions",ok:true,f:"Safe and very useful. It keeps answers consistent across the team."},
+ {t:"Your project's .env file, so the AI understands the app setup",ok:false,f:"No. .env files hold database passwords and API keys. Share a copy with the values removed instead."},
+ {t:"Domain admin passwords, so the AI can 'help faster'",ok:false,f:"Never. Secrets do not go into any AI tool. Anyone with project access, or a leak, exposes them."},
+ {t:"Raw export of 5,000 customer records for 'context'",ok:false,f:"No. Personal data needs approval and minimization. Use fake or masked samples instead."},
+ {t:"Firewall config with real public IPs and rules",ok:false,f:"Not without approval. It is a map for attackers. Mask IPs or use a sanitized version."}];
+var h="";items.forEach(function(it,i){h+='<div class="card" id="it'+i+'" tabindex="0" role="button">'+esc(it.t)+'<div class="small hidden" id="fb'+i+'"></div></div>';});$("items").innerHTML=h;
+items.forEach(function(it,i){var el=$("it"+i);var go=function(){seen("it"+i);el.className="card "+(it.ok?"sel":"blocked");var fb=$("fb"+i);fb.innerHTML='<span class="tag '+(it.ok?"ok":"no")+'">'+(it.ok?"OK":"DO NOT")+'</span>'+esc(it.f);fb.classList.remove("hidden");$("learn").classList.remove("hidden");};el.onclick=go;el.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}};});
+
+</script>
+</body></html>

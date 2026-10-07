@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1. Prompting that works | Module 1 Practical Fluency</title>
+<style>
+:root{--ink:#0E3B43;--steel:#4B6475;--mist:#EEF3F5;--line:#D3DEE4;--amber:#7A4FA3;
+--amber-soft:#F0E9F7;--teal:#2B7BB9;--teal-soft:#E4F0F8;--red:#B83227;--red-soft:#F8E1DE;--paper:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Calibri,Arial,sans-serif;color:var(--ink);background:var(--paper);line-height:1.55;font-size:16px}
+header{background:var(--ink);color:#fff;padding:22px 24px 18px}
+header .mod{font-size:14px;opacity:.8;margin:0}
+header h1{margin:4px 0 6px;font-family:Cambria,Georgia,serif;font-size:30px;font-weight:700}
+header .note{font-size:13px;opacity:.85;margin:0}
+main{max-width:980px;margin:0 auto;padding:22px 20px 40px}
+h2{font-family:Cambria,Georgia,serif;font-size:22px;margin:26px 0 8px}
+p{margin:6px 0 10px;max-width:75ch}
+.box{background:var(--mist);border-radius:10px;padding:16px 18px;margin:12px 0}
+.goal{background:var(--amber-soft)}
+.good{background:var(--teal-soft)}
+.bad{background:var(--red-soft)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+button{font:inherit;font-size:15px;border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;margin:4px 6px 4px 0}
+button:hover{background:var(--mist)}
+button.primary{background:var(--ink);color:#fff}
+button.primary:hover{background:#16525D}
+button.on{background:var(--teal);border-color:var(--teal);color:#fff}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+pre,.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+pre{background:#0A2C33;color:#E6EDF5;border-radius:10px;padding:14px 16px;white-space:pre-wrap;word-break:break-word;margin:10px 0;min-height:44px}
+.out{background:#fff;border:2px solid var(--line);border-radius:10px;padding:14px 16px;min-height:60px;white-space:pre-wrap}
+.tag{display:inline-block;font-size:13px;padding:2px 10px;border-radius:20px;background:var(--mist);margin-right:6px}
+.tag.ok{background:var(--teal-soft);color:#1C4F78}.tag.no{background:var(--red-soft);color:#7a1d16}.tag.warn{background:var(--amber-soft);color:#4E2F6E}
+.meter{height:14px;background:var(--mist);border-radius:8px;overflow:hidden;margin:6px 0}
+.meter>div{height:100%;background:var(--teal);width:0;transition:width .3s}
+.card{border:2px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;background:#fff}
+.card.sel{border-color:var(--teal);background:var(--teal-soft)}
+.card.blocked{border-color:var(--red);background:var(--red-soft)}
+.hidden{display:none}
+.learn{border-left:0;background:var(--teal-soft);border-radius:10px;padding:14px 18px;margin-top:18px}
+nav.pager{display:flex;justify-content:space-between;gap:10px;margin-top:30px;padding-top:14px;border-top:1px solid var(--line)}
+nav.pager a{color:var(--ink);font-weight:600}
+ins{background:#E4F0F8;text-decoration:none;color:#1C4F78}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td,th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--mist)}
+.small{font-size:14px;color:var(--steel)}
+.howto{background:#fff;border:2px solid var(--line);border-radius:10px;padding:12px 18px 12px 38px;margin:12px 0}
+.howto li{margin:4px 0}
+.m0{display:block;margin-top:8px;font-size:15px}
+#prog{font-size:14px;color:var(--steel);margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){.meter>div{transition:none}}
+</style></head>
+<body>
+<header><p class="mod">AI Bootcamp &middot; Module 1: Practical fluency</p>
+<h1>1. Prompting that works</h1>
+<p class="note">Simulation: all AI answers here are pre-written examples. No real AI is called and no data leaves this page.</p></header>
+<main>
+
+<div class="box goal"><b>Goal:</b> see how each part of a prompt changes the answer.<br>
+<b>Think of it like...</b> a work order for a contractor. "Fix the house" gets you anything. "Replace the kitchen faucet, chrome, by Friday, under 3,000 pesos" gets you what you need.<span class="m0"><b>From Module 0: a vague question gets a vague answer. Here you fix that.</b></span></div>
+<ol class="howto"><li>Click <b>Send to AI</b> with no parts turned on and read the answer.</li><li>Turn on the parts one at a time. Click <b>Send to AI</b> after each one.</li><li>Compare the answers, then read <b>What you learned</b>.</li></ol>
+<p id="prog">Explored: 0 of 5</p>
+<h2>Scenario</h2>
+<p>You are a SOC analyst. A user forwarded a suspicious email. You want AI help to analyze it.
+Turn on the prompt parts one by one, then click <b>Send to AI</b>.</p>
+<div id="chips"></div>
+<h2>Your prompt</h2>
+<pre id="prompt"></pre>
+<p class="small">Prompt strength: <span id="scoreTxt">0 / 5</span></p>
+<div class="meter"><div id="meter"></div></div>
+<button class="primary" id="send">Send to AI (simulated)</button>
+<h2>AI answer</h2>
+<div class="out" id="answer">Click Send to AI.</div>
+<div class="learn hidden" id="learn"><b>What you learned</b><br>
+A strong prompt has five parts: <b>Role</b> (who the AI acts as), <b>Context</b> (the facts), <b>Task</b> (exactly what to do),
+<b>Format</b> (how the answer should look), <b>Constraints</b> (limits and rules).
+Missing parts force the AI to guess, and guesses are where mistakes come from.</div>
+
+<nav class="pager"><a href="index-simulator.html">&larr; Start here</a> <a href="01-pf-structured-output-simulator.html">2. Structured outputs &rarr;</a></nav>
+</main>
+<script>
+function $(id){return document.getElementById(id);}
+var SEEN={},TOTAL=0;function seen(k){SEEN[k]=1;var n=Object.keys(SEEN).length,el=document.getElementById("prog");if(el)el.textContent=n>=TOTAL?"All "+TOTAL+" explored. Nice work.":"Explored: "+n+" of "+TOTAL;}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+TOTAL=5;
+var parts=[
+ {k:"role",label:"Role",text:"You are a Tier-1 SOC analyst assistant."},
+ {k:"context",label:"Context",text:"Email: subject 'Your password expires today', sender it-support@rnicrosoft.example, link hxxp://micr0soft-login.example/verify. 3 users received it."},
+ {k:"task",label:"Task",text:"Decide if this is phishing and list the red flags."},
+ {k:"format",label:"Format",text:"Answer as: Verdict, Red flags (bullets), Next step."},
+ {k:"constraints",label:"Constraints",text:"Use only the facts above. Do not visit the link. Max 80 words."}];
+var on={};
+function render(){
+  var chips="";parts.forEach(function(p){chips+='<button id="c_'+p.k+'" class="'+(on[p.k]?"on":"")+'" aria-pressed="'+(!!on[p.k])+'">'+(on[p.k]?"&#10003; ":"+ ")+p.label+'</button>';});
+  $("chips").innerHTML=chips;
+  parts.forEach(function(p){$("c_"+p.k).onclick=function(){on[p.k]=!on[p.k];if(on[p.k])seen(p.k);render();};});
+  var lines=[];parts.forEach(function(p){if(on[p.k])lines.push(p.text);});
+  if(!on.task)lines.push("Analyze this email.");
+  $("prompt").textContent=lines.join("\n");
+  var n=Object.keys(on).filter(function(k){return on[k];}).length;
+  $("scoreTxt").textContent=n+" / 5";$("meter").style.width=(n*20)+"%";
+}
+$("send").onclick=function(){
+  var a;
+  if(!on.context){a="I can't see any email. Please paste the email content.\nIn general, phishing emails create urgency and ask you to click links. Be careful with links and attachments.";}
+  else if(!on.task&&!on.role){a="This email talks about a password expiring. It contains a link and was sent to 3 users. It might be legitimate IT communication or it might not be. Contact your IT department if unsure.";}
+  else if(!on.format){a="This looks like phishing. The sender domain rnicrosoft.example imitates microsoft (r+n looks like m), the link domain uses a zero instead of an o, and the subject creates urgency. Since three users received it, it may be a campaign. You should probably check whether anyone clicked and consider blocking the domain, and also maybe reset passwords, and let users know, and check other mailboxes too because there could be more...";}
+  else{a="Verdict: Phishing (likely credential harvesting)\nRed flags:\n- Sender domain rnicrosoft.example imitates microsoft\n- Link domain micr0soft-login uses a zero for 'o'\n- Urgent subject: 'expires today'\n- Sent to 3 users (possible campaign)\nNext step: check click logs for all 3 users and escalate to Tier 2.";
+    if(!on.constraints)a+="\n\nAlso, I visited similar sites in the past and they usually host fake login pages. You could open the link in a sandbox to confirm what it does, and here are 6 more general tips about phishing awareness training...";}
+  $("answer").textContent=a;$("learn").classList.remove("hidden");
+};
+on.task=false;render();
+
+</script>
+</body></html>

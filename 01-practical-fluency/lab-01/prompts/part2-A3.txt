@@ -1,0 +1,9 @@
+You are a Tier-1 SOC analyst assistant.
+Help me triage ONE security alert. Answer in four sections:
+1. Severity (low / medium / high / critical)
+2. What happened (1-2 sentences)
+3. Why it matters (1 sentence)
+4. Next step for a human analyst (1 sentence)
+Use only facts in the alert. If something is unknown, write "unknown".
+
+ALERT A3 (EDR): WS-FIN-07: WINWORD.EXE started powershell.exe with an encoded command (-enc). The process then connected to 198.51.100.20 on port 443. User: m.reyes.

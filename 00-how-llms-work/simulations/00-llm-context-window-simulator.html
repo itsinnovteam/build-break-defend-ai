@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Window Impact — Party Planning Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#14110B;
+    --panel:#1D1810;
+    --panel-2:#241E14;
+    --border:#3A311F;
+    --border-soft:#2A2418;
+    --text:#ECE3D0;
+    --text-dim:#A89B7E;
+    --text-faint:#6E6248;
+    --amber:#E8A33D;
+    --amber-dim:#8A6326;
+    --cyan:#6FBFBF;
+    --rust:#C1502E;
+    --green:#7FA65C;
+    --font-mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-sans:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(232,163,61,0.08), transparent),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-sans);
+    min-height:100vh;
+    padding:28px 20px 60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  /* ---------- Header ---------- */
+  header{margin-bottom:28px;}
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--amber);
+    display:flex;align-items:center;gap:8px;
+    margin-bottom:10px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:6px;height:6px;
+    background:var(--amber);
+    border-radius:50%;
+    box-shadow:0 0 8px 1px var(--amber);
+  }
+  h1{
+    font-family:var(--font-sans);
+    font-weight:800;
+    font-size:clamp(26px,4vw,38px);
+    letter-spacing:-0.01em;
+    margin:0 0 10px;
+    line-height:1.1;
+  }
+  header p{
+    color:var(--text-dim);
+    font-size:15px;
+    line-height:1.6;
+    max-width:640px;
+    margin:0;
+  }
+
+  /* ---------- Layout ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:300px 1fr;
+    gap:18px;
+    align-items:start;
+  }
+  @media (max-width: 860px){
+    .grid{grid-template-columns:1fr;}
+  }
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border-soft);
+    border-radius:10px;
+    padding:18px;
+  }
+  .panel + .panel{margin-top:14px;}
+  .panel h2{
+    font-family:var(--font-mono);
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin:0 0 14px;
+    font-weight:600;
+  }
+
+  /* ---------- Controls ---------- */
+  .window-readout{
+    font-family:var(--font-mono);
+    font-size:30px;
+    font-weight:600;
+    color:var(--amber);
+    line-height:1;
+    margin-bottom:2px;
+  }
+  .window-readout span{font-size:14px;color:var(--text-faint);font-weight:400;}
+  .window-sub{font-size:12px;color:var(--text-dim);margin-bottom:16px;}
+
+  input[type=range]{
+    -webkit-appearance:none;
+    width:100%;
+    height:4px;
+    border-radius:2px;
+    background:var(--border);
+    outline:none;
+    margin:10px 0 14px;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--amber);
+    border:2px solid #14110B;
+    box-shadow:0 0 0 1px var(--amber);
+    cursor:pointer;
+    margin-top:-6px;
+  }
+  input[type=range]::-webkit-slider-runnable-track{
+    height:4px;border-radius:2px;
+    background:linear-gradient(90deg, var(--amber-dim), var(--border));
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px;height:16px;border-radius:50%;
+    background:var(--amber);border:2px solid #14110B;cursor:pointer;
+  }
+
+  .presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;}
+  .preset-btn{
+    font-family:var(--font-mono);
+    font-size:11px;
+    padding:6px 9px;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    color:var(--text-dim);
+    border-radius:6px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .preset-btn:hover{border-color:var(--amber-dim);color:var(--text);}
+  .preset-btn.active{
+    background:rgba(232,163,61,0.12);
+    border-color:var(--amber);
+    color:var(--amber);
+  }
+
+  .btn-row{display:flex;gap:8px;margin-top:4px;}
+  .btn{
+    font-family:var(--font-sans);
+    font-weight:600;
+    font-size:13px;
+    padding:9px 14px;
+    border-radius:7px;
+    border:1px solid var(--border);
+    background:var(--panel-2);
+    color:var(--text);
+    cursor:pointer;
+    flex:1;
+    transition:all .15s ease;
+  }
+  .btn:hover{border-color:var(--amber-dim);}
+  .btn.primary{
+    background:var(--amber);
+    border-color:var(--amber);
+    color:#1A1305;
+  }
+  .btn.primary:hover{background:#f0af4d;}
+  .btn:disabled{opacity:0.4;cursor:default;}
+
+  /* ---------- Stats ---------- */
+  .stat-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:9px 0;
+    border-bottom:1px solid var(--border-soft);
+    font-size:13px;
+  }
+  .stat-row:last-child{border-bottom:none;}
+  .stat-label{color:var(--text-dim);}
+  .stat-val{font-family:var(--font-mono);font-weight:600;color:var(--text);}
+  .stat-val.dim{color:var(--rust);}
+  .stat-val.good{color:var(--cyan);}
+
+  .util-bar-bg{
+    height:8px;border-radius:4px;
+    background:var(--panel-2);
+    border:1px solid var(--border-soft);
+    overflow:hidden;
+    margin:8px 0 4px;
+  }
+  .util-bar-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--amber-dim), var(--amber));
+    border-radius:4px;
+    transition:width .35s ease;
+  }
+
+  /* ---------- Transcript panel ---------- */
+  .transcript-panel{
+    background:var(--panel);
+    border:1px solid var(--border-soft);
+    border-radius:10px;
+    padding:0;
+    overflow:hidden;
+  }
+  .transcript-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 18px;
+    border-bottom:1px solid var(--border-soft);
+    background:var(--panel-2);
+  }
+  .transcript-head h2{margin:0;}
+  .legend{display:flex;gap:14px;font-size:11px;color:var(--text-faint);font-family:var(--font-mono);}
+  .legend span{display:inline-flex;align-items:center;gap:5px;}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+  .dot.live{background:var(--cyan);}
+  .dot.gone{background:var(--rust);}
+
+  .transcript{
+    max-height:640px;
+    overflow-y:auto;
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    scroll-behavior:smooth;
+  }
+  .transcript::-webkit-scrollbar{width:8px;}
+  .transcript::-webkit-scrollbar-track{background:transparent;}
+  .transcript::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+
+  .boundary{
+    position:relative;
+    display:flex;align-items:center;gap:10px;
+    margin:4px 0 10px;
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--amber);
+    letter-spacing:0.04em;
+  }
+  .boundary::before,.boundary::after{
+    content:'';flex:1;height:1px;
+    background:repeating-linear-gradient(90deg, var(--amber) 0 6px, transparent 6px 11px);
+    opacity:0.7;
+  }
+  .boundary.all-in{color:var(--green);}
+  .boundary.all-in::before,.boundary.all-in::after{
+    background:repeating-linear-gradient(90deg, var(--green) 0 6px, transparent 6px 11px);
+  }
+
+  .forgotten-block{
+    border:1.5px dashed var(--rust);
+    background:repeating-linear-gradient(135deg, rgba(193,80,46,0.06) 0 10px, rgba(193,80,46,0.11) 10px 20px);
+    border-radius:10px;
+    padding:16px 16px;
+    margin-bottom:2px;
+  }
+  .forgotten-head{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px 12px;
+  }
+  .forgotten-icon{
+    width:22px;height:22px;flex:0 0 22px;
+    border-radius:50%;
+    background:var(--rust);
+    color:#1A1305;
+    display:flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:700;
+  }
+  .forgotten-title{
+    font-weight:700;
+    font-size:14.5px;
+    color:var(--rust);
+  }
+  .forgotten-toklabel{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    color:var(--text-dim);
+    margin-right:auto;
+  }
+  .forgotten-toggle{
+    font-family:var(--font-mono);
+    font-size:11px;
+    padding:5px 10px;
+    background:transparent;
+    border:1px solid var(--rust);
+    color:var(--rust);
+    border-radius:6px;
+    cursor:pointer;
+  }
+  .forgotten-toggle:hover{background:rgba(193,80,46,0.14);}
+  .forgotten-body{
+    display:flex;flex-direction:column;gap:10px;
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px dashed rgba(193,80,46,0.35);
+  }
+  .forgotten-block:not(.expanded) .forgotten-body{display:none;}
+
+  .msg{
+    display:flex;
+    flex-direction:column;
+    max-width:82%;
+    padding:10px 13px;
+    border-radius:9px;
+    font-size:13.5px;
+    line-height:1.5;
+    border:1px solid var(--border-soft);
+    position:relative;
+    transition:opacity .35s ease, filter .35s ease;
+    animation:rise .3s ease;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .msg.user{align-self:flex-end;background:var(--panel-2);border-color:#3d3220;}
+  .msg.assistant{align-self:flex-start;background:#191E1A;border-color:#31392E;}
+
+  .msg.out-window{
+    opacity:0.32;
+    filter:grayscale(0.6);
+  }
+  .msg.out-window .msg-body{
+    background:repeating-linear-gradient(135deg, transparent 0 8px, rgba(193,80,46,0.08) 8px 9px);
+  }
+
+  .msg-meta{
+    display:flex;align-items:center;gap:8px;
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--text-faint);
+    margin-bottom:5px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+  }
+  .role-tag.user{color:var(--amber);}
+  .role-tag.assistant{color:var(--green);}
+  .tok-tag{color:var(--text-faint);}
+  .tok-tag::before{content:'· ';}
+
+  .tag-pill{
+    font-family:var(--font-mono);
+    font-size:9.5px;
+    padding:2px 6px;
+    border-radius:4px;
+    border:1px solid var(--amber);
+    color:var(--amber);
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  .tag-pill.warn{border-color:var(--rust);color:var(--rust);}
+  .tag-pill.important{border-color:var(--cyan);color:var(--cyan);}
+
+  /* ---------- Tracked messages ---------- */
+  .tracked-empty{
+    color:var(--text-faint);
+    font-size:12.5px;
+    line-height:1.6;
+  }
+  .tracked-item{
+    padding:9px 0;
+    border-bottom:1px solid var(--border-soft);
+  }
+  .tracked-item:last-child{border-bottom:none;}
+  .tracked-snippet{
+    font-size:12.5px;
+    color:var(--text-dim);
+    line-height:1.4;
+    margin-bottom:6px;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .keyfact-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--font-mono);
+    font-size:12px;font-weight:600;
+    padding:6px 10px;border-radius:6px;
+    border:1px solid;
+  }
+  .keyfact-badge.in{
+    color:var(--cyan);border-color:rgba(111,191,191,0.4);background:rgba(111,191,191,0.08);
+  }
+  .keyfact-badge.out{
+    color:var(--rust);border-color:rgba(193,80,46,0.4);background:rgba(193,80,46,0.08);
+  }
+  .keyfact-badge::before{content:'●';font-size:8px;}
+
+  /* ---------- Mode tabs ---------- */
+  .mode-tabs{
+    display:flex;gap:6px;
+  }
+  .mode-tab{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    padding:7px 12px;
+    border-radius:7px;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--text-dim);
+    cursor:pointer;
+  }
+  .mode-tab:hover{color:var(--text);}
+  .mode-tab.active{
+    background:rgba(232,163,61,0.12);
+    border-color:var(--amber);
+    color:var(--amber);
+  }
+
+  /* ---------- Composer ---------- */
+  .composer{
+    padding:14px 18px;
+    border-top:1px solid var(--border-soft);
+    background:var(--panel-2);
+  }
+  .composer-row{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:8px;
+  }
+  .role-toggle{display:flex;gap:6px;}
+  .role-chip{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    padding:5px 11px;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:transparent;
+    color:var(--text-dim);
+    cursor:pointer;
+  }
+  .role-chip.active.user{background:rgba(232,163,61,0.12);border-color:var(--amber);color:var(--amber);}
+  .role-chip.active.assistant{background:rgba(127,166,92,0.14);border-color:var(--green);color:var(--green);}
+
+  .important-check{
+    display:flex;align-items:center;gap:6px;
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    color:var(--text-dim);
+    cursor:pointer;
+    user-select:none;
+  }
+  .important-check input{accent-color:var(--cyan);cursor:pointer;}
+
+  .composer textarea{
+    width:100%;
+    resize:vertical;
+    min-height:56px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--text);
+    font-family:var(--font-sans);
+    font-size:13.5px;
+    padding:10px 12px;
+    line-height:1.5;
+    outline:none;
+  }
+  .composer textarea:focus{border-color:var(--amber-dim);}
+  .composer-footer{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:8px;
+  }
+  .composer-tokens{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    color:var(--text-faint);
+  }
+  .composer-btns{display:flex;gap:8px;}
+  .composer-btns .btn{flex:none;padding:8px 14px;}
+  .composer-hint{
+    font-size:12px;
+    color:var(--text-dim);
+    line-height:1.4;
+  }
+
+  .context-caption{
+    font-family:var(--font-mono);
+    font-size:10.5px;
+    color:var(--text-faint);
+    margin-top:7px;
+    padding-top:7px;
+    border-top:1px dashed var(--border-soft);
+  }
+
+  .typing-msg{
+    align-self:flex-start;
+    display:flex;align-items:center;gap:6px;
+    padding:10px 13px;
+    color:var(--text-faint);
+    font-family:var(--font-mono);
+    font-size:12px;
+  }
+  .typing-dots{display:inline-flex;gap:3px;}
+  .typing-dots span{
+    width:5px;height:5px;border-radius:50%;
+    background:var(--green);
+    animation:pulse 1.1s infinite ease-in-out;
+  }
+  .typing-dots span:nth-child(2){animation-delay:.15s;}
+  .typing-dots span:nth-child(3){animation-delay:.3s;}
+  @keyframes pulse{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+
+  .msg.error{border-color:rgba(193,80,46,0.5);}
+  .msg.error .msg-body{color:var(--rust);}
+
+  .msg-body pre{
+    margin:6px 0 0;
+    padding:8px 10px;
+    background:#0F0D08;
+    border:1px solid var(--border-soft);
+    border-radius:6px;
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    color:var(--text-dim);
+    overflow-x:auto;
+    white-space:pre;
+  }
+
+  .footnote{
+    color:var(--text-dim);
+    font-size:12.5px;
+    line-height:1.6;
+    padding:14px 18px;
+    border-top:1px solid var(--border-soft);
+    background:var(--panel-2);
+  }
+  .footnote b{color:var(--text);}
+
+  .empty-state{
+    color:var(--text-faint);
+    font-size:13px;
+    text-align:center;
+    padding:40px 0;
+    font-family:var(--font-mono);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Context Window Simulator</div>
+    <h1>What your context window forgets</h1>
+    <p>A model can only "see" as many tokens as its context window holds. As a conversation grows past that limit, the earliest messages fall out of view — even if they mattered. Drag the slider below and watch it happen to an everyday chat about planning a birthday party.</p>
+  </header>
+
+  <div class="grid">
+
+    <!-- ===== SIDEBAR ===== -->
+    <div>
+      <div class="panel">
+        <h2>Context Window Size</h2>
+        <div class="window-readout" id="windowReadout">8,000<span> tokens</span></div>
+        <div class="window-sub" id="windowSub">≈ 16 pages of text</div>
+        <input type="range" id="windowSlider" min="0" max="1000" value="500">
+        <div class="presets" id="presets"></div>
+        <div class="btn-row">
+          <button class="btn primary" id="replayBtn">↺ Replay conversation</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Live Stats</h2>
+        <div class="stat-row">
+          <span class="stat-label">Tokens in window</span>
+          <span class="stat-val" id="statTokens">0 / 0</span>
+        </div>
+        <div class="util-bar-bg"><div class="util-bar-fill" id="utilFill" style="width:0%"></div></div>
+        <div class="stat-row">
+          <span class="stat-label">Messages remembered</span>
+          <span class="stat-val good" id="statIn">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Messages forgotten</span>
+          <span class="stat-val dim" id="statOut">0</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Tracked Messages</h2>
+        <div id="trackedList">
+          <div class="tracked-empty">Flag a message as important (★) to see whether it's still inside the window as it shrinks.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TRANSCRIPT ===== -->
+    <div class="transcript-panel">
+      <div class="transcript-head">
+        <h2 id="transcriptTitle">Party-planning chat</h2>
+        <div class="legend">
+          <span><i class="dot live"></i> remembered</span>
+          <span><i class="dot gone"></i> forgotten</span>
+        </div>
+      </div>
+      <div class="mode-tabs" style="padding:12px 18px 0;">
+        <button class="mode-tab active" data-mode="sample">Sample: Party planning</button>
+        <button class="mode-tab" data-mode="custom">✎ Try your own prompt</button>
+      </div>
+      <div class="transcript" id="transcript">
+        <div class="empty-state">Loading conversation…</div>
+      </div>
+      <div class="footnote" id="sampleFootnote">
+        At the default 8K window, most of this conversation is already forgotten — try the <b>128K</b> or <b>1M</b> preset to watch it all reappear. Separately, <b>message #15</b> (the bakery order) is generated fresh each time using only what's still in the window — shrink below ~4,800 tokens and the assistant loses mom's peanut allergy and the lavender/teal theme from message #2, giving a visibly wrong / generic answer instead. Switch to "Try your own prompt" to build this same right‑vs‑wrong effect with your own facts.
+      </div>
+      <div class="composer" id="composer" style="display:none;">
+        <div class="composer-row">
+          <span class="composer-hint">You write the messages — Claude generates the real replies, using only what's still inside the window.</span>
+          <label class="important-check"><input type="checkbox" id="importantCheck"> ★ flag as important</label>
+        </div>
+        <textarea id="composerText" placeholder="Type a message to send… e.g. tell it a fact, then later ask it something that depends on remembering that fact. Press Enter to send, Shift+Enter for a new line."></textarea>
+        <div class="composer-footer">
+          <span class="composer-tokens" id="composerTokens">~0 tokens</span>
+          <div class="composer-btns">
+            <button class="btn" id="clearCustomBtn">Clear all</button>
+            <button class="btn primary" id="addMsgBtn">Send ➜</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------------- Conversation data ----------------
+  // tokens are illustrative, not exact counts
+  const GUESTS = `Guest list (RSVP'd so far)
+Mom's side: Aunt Carol, Uncle Ray, Priya, Priya's husband Tom
+Dad's side: Grandma Sue, Nick, Nick's kids (2)
+Neighbors: the Kims, the Alvarezes, Doreen from next door
+Mom's friends: Beth, Janice, the whole book club (6 people)
+Work friends: Marcus, Elena, old boss Diane
+Us: me, my husband, my brother + his fiancée`;
+
+  const VENUES = `Venue options
+1. The Garden Room at Fairview Park — $600, holds 50, has a small kitchen
+2. Back patio at Rosa's Trattoria — $450 minimum spend, holds 35, no rain plan
+3. Community hall on Elm St — $200, holds 80, need to bring everything ourselves
+4. Our backyard — free, holds maybe 30 comfortably, weather risk`;
+
+  const BUDGET = `Rough budget so far
+Venue: $600
+Food & drinks: $900
+Cake: $180
+Decorations: $150
+Photographer (2 hrs): $300
+Invitations/printing: $60
+Misc/buffer: $200
+Total: $2,390`;
+
+  const MENU = `Possible menu
+Starters: caprese skewers, stuffed mushrooms
+Mains: herb roast chicken, veggie lasagna, garlic green beans
+Sides: rolls, roasted potatoes
+Dessert: the cake + a small dessert table
+Drinks: prosecco, iced tea, lemonade, coffee`;
+
+  const RESTAURANTS = `Coast trip — restaurant & activity notes from everyone
+Priya: "the seafood shack by the pier is a must, cash only though"
+Nick: wants to do the lighthouse hike on day 2, moderate difficulty, ~3 miles
+Mom: really wants to see the tide pools at low tide, best around 7am
+Beth: recommends the bakery in the harbor town for breakfast pastries
+Dad: wants at least one night of just grilling at the house, no reservations
+Kids: want the mini golf place and the arcade by the boardwalk
+General group votes: aquarium (yes x6), whale watching tour (yes x4, no x2 - Nick gets seasick)
+Backup rainy day plan: the maritime museum downtown
+Grocery run needed for: breakfast stuff, snacks, burgers for grill night, s'mores supplies
+Someone should call ahead for the seafood shack since it gets busy after 6pm
+Also check if the tide pool spot requires water shoes — Priya said the rocks are sharp
+Aunt Carol wants a group photo somewhere with a view, maybe the bluff trail lookout
+Uncle Ray asked about parking near the boardwalk, apparently it fills up early
+Nick's kids want to build a sandcastle competition on the last morning
+Doreen mentioned a farmers market Saturday morning if we're around for that`;
+
+  const HOTELS = `Hotel comparison for the coast trip
+1. Seabreeze Inn — $220/night, 3 rooms needed, walkable to the pier, small pool, older building
+2. Harborview Suites — $310/night, 2 larger rooms could work, kitchenette, newer, a bit further from downtown
+3. The rental house on Cliff Rd — $650/night total, sleeps 10, full kitchen, backyard grill, 10 min drive to town
+4. Budget motel off the highway — $95/night, 4 rooms, no real amenities, 15 min from everything
+Notes: the rental house works out cheapest per person if everyone splits it, and means we're all together
+which matters since half the trip is about hanging out as a family, not just doing separate things.
+Downside is the drive into town, but there's a shared car and Nick's minivan so it's not really an issue.
+Need to confirm max occupancy and pet policy since Beth might bring her dog.
+Also worth checking cancellation policy given the group size — if two families drop out last minute
+we don't want to be stuck with the full rental cost. The Cliff Rd listing mentions free cancellation
+up to 14 days before check-in, which lines up fine with when final headcounts should be locked in.`;
+
+  const PACKING = `Packing list draft (shared doc so far)
+- Swimsuits, towels, sunscreen (reef-safe if going near tide pools)
+- Light jacket for evenings, it gets breezy near the water
+- Comfortable shoes for the lighthouse hike, water shoes for tide pools
+- Beach games: frisbee, cornhole if it fits in the car
+- Cooler + ice packs for the drive and grill night
+- Phone chargers, portable speaker, camera for the group photo
+- Snacks for the car — kids get cranky on long drives
+- Sunglasses, hats, bug spray for the evening cookout
+- First aid basics, any allergy meds (remember mom's peanut allergy for snack shopping too)
+- Cash for the seafood shack and the farmers market
+- Board games or cards for the rainy-day backup plan
+- Extra bags for wet swimsuits and towels on the way home`;
+
+  const RECIPES = `Road trip snack ideas people sent over
+Priya: trail mix with dried fruit, nothing with peanuts obviously, maybe cashews or sunflower seeds instead
+Nick: those little cheese and cracker packs, easy for the kids to grab
+Beth: homemade granola bars, she can make a big batch ahead of time
+Mom: just wants good coffee and something with lavender if we're being extra, half joking
+Dad: chips and salsa for the car, "the messier the better" apparently
+Grandma Sue: cut up fruit in containers, grapes, melon, strawberries
+General notes: someone should make a master shopping list combining all of this before the grocery run,
+and double check labels for the trail mix and granola bars given the peanut allergy — a lot of "healthy"
+snack mixes sneak peanuts in even when you don't expect it, so cashews or sunflower seed butter are safer
+swaps if anyone wants that kind of thing. Also worth grabbing a cooler bag specifically for anything that
+needs to stay cold on the drive, separate from the main cooler so it doesn't get buried under drinks.`;
+
+  const WEATHER = `4-day forecast for the coast
+Day 1: Sunny, high 74°F, light wind — good day for the hike and tide pools
+Day 2: Partly cloudy, high 71°F, small chance of afternoon showers — keep the museum as backup
+Day 3: Sunny, high 76°F, calmer water — good day for the whale watching tour if we're doing it
+Day 4: Overcast, high 68°F, packing up and heading home day anyway so it doesn't matter much
+Notes: tide pool times shift a little each day, need to double check the actual low tide window
+rather than just assuming 7am every morning. Also the whale watching company has a rain/rough-water
+policy where they'll refund or reschedule, so no huge risk in booking day 3 in advance.`;
+
+  const raw = [
+    {role:'user', text:`Hey, I'm planning my mom's 60th birthday party next month — can you help me get organized?`, tokens:30},
+    {role:'user', id:'keyfact', text:`Quick heads up — she's allergic to peanuts, she loves anything lavender, and her favorite color is teal. Keep that in mind for whatever you suggest!`, tokens:45, important:true},
+    {role:'assistant', text:`Got it — no peanuts anywhere, and I'll lean lavender and teal for the look and feel. Let's start with the guest list — how many people are you thinking?`, tokens:40},
+    {role:'user', text:`Here's who's RSVP'd so far:`, code:GUESTS, tokens:900},
+    {role:'assistant', text:`That's around 20-22 people depending on plus-ones. That's a nice size for a mid-sized venue — nothing that needs a huge hall, but you'll want more than just your living room.`, tokens:220},
+    {role:'user', text:`I've been looking at a few places:`, code:VENUES, tokens:1100},
+    {role:'assistant', text:`For 20ish people I'd lean toward the Garden Room — it fits the group comfortably with room to spare, and having a kitchen on site makes food logistics way easier than the patio option.`, tokens:260},
+    {role:'user', text:`Makes sense. Here's the budget I've sketched out so far:`, code:BUDGET, tokens:750},
+    {role:'assistant', text:`That's a reasonable spread. If you want a cushion, catering and the photographer are usually the easiest places to trim a little without it being noticeable.`, tokens:230},
+    {role:'user', text:`Here's a menu idea a friend helped me put together:`, code:MENU, tokens:650},
+    {role:'assistant', text:`This menu is a good mix and easy for a caterer to scale for ~20 people. Just double-check the mushrooms and lasagna don't touch anything with peanuts during prep, since it's a shared kitchen.`, tokens:240},
+    {role:'user', text:`Good call, I'll ask them directly. Venue is booked! Now I'm stressing about invitations.`, tokens:50},
+    {role:'assistant', text:`No need to overthink it — send them out about 3-4 weeks ahead, keep the wording simple, and just make sure the date, time, address, and an RSVP deadline are easy to spot at a glance.`, tokens:320},
+    {role:'user', text:`Can you write me a short message to send the bakery for the cake order?`, tokens:32},
+    {role:'assistant', id:'conditional', conditional:true, tokens:65,
+      textIn:`Sure — here's a message you can send: "Hi! I'd like to order a birthday cake for 20-22 people, please — nut-free (peanut allergy in the house), and if possible decorated in lavender and teal. Let me know what flavors work best!"`,
+      textOut:`Sure — here's a general message you can send: "Hi! I'd like to order a birthday cake for about 20 people, please. Let me know what flavors and designs are available!" Heads up — I don't have any allergy or color-theme details in view anymore, so double-check those with the bakery yourself.`
+    },
+    {role:'user', text:`That's great, thanks! Also, could you help me put together a playlist for the party?`, tokens:55},
+    {role:'assistant', text:`Sure — I'd mix in some easy background music for when people first arrive, then shift to more upbeat, familiar songs once everyone's eating and mingling. Want me to sketch out a rough hour-by-hour flow?`, tokens:230},
+    {role:'user', text:`Yes please. Also, any decoration ideas that fit the lavender and teal thing?`, tokens:48},
+    {role:'assistant', text:`Lavender and teal work really nicely together — think lavender stems in small vases, teal table runners or ribbons, and maybe a few strands of fairy lights for the evening. Simple, not overdone.`, tokens:210},
+    {role:'user', text:`I love that. Should I do a photo booth too?`, tokens:44},
+    {role:'assistant', text:`It's a fun touch if you have the space and someone willing to set it up — people love the keepsake. Just weigh it against your budget buffer, since props and a backdrop can add up quickly.`, tokens:220},
+    {role:'user', text:`Let's do it, but keep it simple — just a backdrop and a few props.`, tokens:38},
+    {role:'assistant', text:`Perfect — a plain teal or lavender fabric backdrop, a couple of fun hats or signs, and your phone on a tripod is honestly all you need. No need for a fancy setup.`, tokens:180},
+    {role:'user', text:`One more thing — who should give the toast?`, tokens:52},
+    {role:'assistant', text:`Usually whoever knows her longest or has the closest relationship — your dad or your brother would both be natural choices, or even a short toast from you followed by an open one for anyone else who wants to say something.`, tokens:190},
+    {role:'user', text:`Perfect, thank you for all the help with this! Now — totally different topic — we're doing a small family trip right after the party. Can you help me plan a 4 day itinerary for the coast?`, tokens:90},
+    {role:'assistant', text:`Happy to help with that too! Who's coming along, and is there anything specific people want to do — hiking, beach time, food, all of the above?`, tokens:300},
+    {role:'user', text:`Here's a big pile of notes people sent me:`, code:RESTAURANTS, tokens:12000},
+    {role:'assistant', text:`Okay, I can see a shape here — hike and tide pools one morning, boardwalk and arcade for the kids, a grill night at home base, and the aquarium or whale watching as the "big" outing depending on the group vote. I'll draft a day-by-day once we sort where everyone's staying.`, tokens:1200},
+    {role:'user', text:`Good idea, here's what I found for places to stay:`, code:HOTELS, tokens:9000},
+    {role:'assistant', text:`The rental house on Cliff Rd looks like the strongest option given the group size — keeping everyone together will make the mornings and grill night much easier to coordinate, even with the extra drive into town.`, tokens:900},
+    {role:'user', text:`Agreed, booking that one. Here's a packing list draft going around:`, code:PACKING, tokens:7000},
+    {role:'assistant', text:`Solid list — I'd just add a printed copy of everyone's contact info in case phones die, and a spare phone charger cable at the rental house since someone always forgets theirs.`, tokens:700},
+    {role:'user', text:`Ha, fair. Here's a bunch of snack ideas people have been throwing around too:`, code:RECIPES, tokens:14000},
+    {role:'assistant', text:`These all sound good together — I'd prioritize the granola bars and fruit for the drive since they travel well, and just make sure the trail mix and any store-bought bars are checked for peanuts before they go in the shared snack bag.`, tokens:1000},
+    {role:'user', text:`Good call, will do. Last thing — here's the forecast for the trip dates:`, code:WEATHER, tokens:6000},
+    {role:'assistant', text:`That's a good forecast overall — I'd lock in the tide pools for day 1 morning while it's driest, keep the museum as the day 2 backup, and book whale watching for day 3 since the water's calmest then.`, tokens:600},
+    {role:'user', text:`This has been so helpful, I'm feeling way more organized about both the party and the trip now!`, tokens:40},
+    {role:'assistant', text:`That's great to hear! Sounds like it's going to be a wonderful few days — let me know if you want a day-of timeline for the party or a packing checklist people can check off together.`, tokens:100},
+  ];
+
+  const messages = raw.map((m,i)=>({...m, idx:i}));
+
+  // ---------------- Preset windows ----------------
+  const PRESETS = [
+    {label:'4K', value:4000},
+    {label:'8K', value:8000},
+    {label:'32K', value:32000},
+    {label:'128K', value:128000},
+    {label:'200K', value:200000},
+    {label:'1M', value:1000000},
+  ];
+  const MIN_T = 10, MAX_T = 1000000;
+
+  function sliderToTokens(v){
+    // log scale 0-1000 -> MIN_T..MAX_T
+    const t = v/1000;
+    return Math.round(Math.exp(Math.log(MIN_T) + t*(Math.log(MAX_T)-Math.log(MIN_T))));
+  }
+  function tokensToSlider(tok){
+    const t = (Math.log(tok)-Math.log(MIN_T))/(Math.log(MAX_T)-Math.log(MIN_T));
+    return Math.round(t*1000);
+  }
+
+  let windowSize = 8000;
+  let revealCount = messages.length;
+  let playing = false;
+  let forgottenExpanded = false;
+  let mode = 'sample'; // 'sample' | 'custom'
+  let customMessages = [];
+  let awaitingReply = false;
+
+  const el = {
+    slider: document.getElementById('windowSlider'),
+    readout: document.getElementById('windowReadout'),
+    sub: document.getElementById('windowSub'),
+    presets: document.getElementById('presets'),
+    transcript: document.getElementById('transcript'),
+    statTokens: document.getElementById('statTokens'),
+    utilFill: document.getElementById('utilFill'),
+    statIn: document.getElementById('statIn'),
+    statOut: document.getElementById('statOut'),
+    trackedList: document.getElementById('trackedList'),
+    replayBtn: document.getElementById('replayBtn'),
+    transcriptTitle: document.getElementById('transcriptTitle'),
+    sampleFootnote: document.getElementById('sampleFootnote'),
+    composer: document.getElementById('composer'),
+    composerText: document.getElementById('composerText'),
+    composerTokens: document.getElementById('composerTokens'),
+    addMsgBtn: document.getElementById('addMsgBtn'),
+    clearCustomBtn: document.getElementById('clearCustomBtn'),
+    importantCheck: document.getElementById('importantCheck'),
+  };
+
+  function escapeHtml(str){
+    return str
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;');
+  }
+
+  function estimateTokens(text){
+    return Math.max(1, Math.round(text.trim().length / 4));
+  }
+
+  function buildPresets(){
+    el.presets.innerHTML = '';
+    PRESETS.forEach(p=>{
+      const b = document.createElement('button');
+      b.className = 'preset-btn';
+      b.textContent = p.label;
+      b.onclick = ()=>{ windowSize = p.value; el.slider.value = tokensToSlider(p.value); render(); };
+      el.presets.appendChild(b);
+    });
+  }
+
+  function fmt(n){ return n.toLocaleString('en-US'); }
+
+  
+  function computeWindowMembership(list){
+    // list = messages in order; returns Set of idx that are "in window"
+    // sliding window counts backward from the newest message
+    let total = 0;
+    const inSet = new Set();
+    for(let i=list.length-1;i>=0;i--){
+      const tok = list[i].tokens;
+      if(total + tok <= windowSize || inSet.size===0 && i===list.length-1){
+        // always allow at least the newest message in, even if it alone exceeds window
+      }
+      if(total + tok <= windowSize){
+        total += tok;
+        inSet.add(list[i].idx);
+      } else if (i===list.length-1){
+        total += tok;
+        inSet.add(list[i].idx); // newest message always visible
+      } else {
+        break;
+      }
+    }
+    return {inSet, total};
+  }
+
+  function getActiveMessages(){
+    return mode === 'sample' ? messages : customMessages;
+  }
+
+  function render(){
+    // slider <-> windowSize sync
+    el.readout.innerHTML = fmt(windowSize) + '<span> tokens</span>';
+    el.sub.textContent = '≈ ' + fmt(Math.max(1, Math.round(windowSize/500))) + ' page' + (windowSize>500?'s':'') + ' of text';
+
+    PRESETS.forEach((p,i)=>{
+      el.presets.children[i].classList.toggle('active', p.value===windowSize);
+    });
+
+    const activeMessages = getActiveMessages();
+    resolveConditionals(activeMessages);
+    const shown = activeMessages.slice(0, revealCount);
+
+    const {inSet, total} = computeWindowMembership(shown);
+
+    // transcript
+    el.transcript.innerHTML = '';
+    if(shown.length===0){
+      el.transcript.innerHTML = mode==='sample'
+        ? '<div class="empty-state">Press replay to start the conversation…</div>'
+        : '<div class="empty-state">Add a message below to start building your own conversation…</div>';
+    }
+
+    // find split point: contiguous forgotten prefix, then remembered suffix
+    let firstInPos = shown.length;
+    for(let i=0;i<shown.length;i++){
+      if(inSet.has(shown[i].idx)){ firstInPos = i; break; }
+    }
+    const forgottenMsgs = shown.slice(0, firstInPos);
+    const rememberedMsgs = shown.slice(firstInPos);
+
+    if(forgottenMsgs.length>0){
+      const fTokens = forgottenMsgs.reduce((s,m)=>s+m.tokens,0);
+      const block = document.createElement('div');
+      block.className = 'forgotten-block' + (forgottenExpanded ? ' expanded' : '');
+      block.innerHTML = `
+        <div class="forgotten-head">
+          <span class="forgotten-icon">✕</span>
+          <span class="forgotten-title">${forgottenMsgs.length} earlier message${forgottenMsgs.length===1?'':'s'} pushed out of the context window</span>
+          <span class="forgotten-toklabel">${fmt(fTokens)} tokens no longer visible to the model</span>
+          <button class="forgotten-toggle" id="forgottenToggle">${forgottenExpanded ? 'Hide' : 'Show anyway'}</button>
+        </div>
+        <div class="forgotten-body" id="forgottenBody"></div>
+      `;
+      el.transcript.appendChild(block);
+      const body = block.querySelector('#forgottenBody');
+      if(forgottenExpanded){
+        forgottenMsgs.forEach(m=> body.appendChild(renderMsg(m, false)));
+      }
+      block.querySelector('#forgottenToggle').addEventListener('click', ()=>{
+        forgottenExpanded = !forgottenExpanded;
+        render();
+      });
+
+      const boundary = document.createElement('div');
+      boundary.className = 'boundary';
+      boundary.textContent = 'CONTEXT WINDOW BOUNDARY — everything below is still visible';
+      el.transcript.appendChild(boundary);
+    } else if(shown.length>0){
+      const boundary = document.createElement('div');
+      boundary.className = 'boundary all-in';
+      boundary.textContent = 'ENTIRE CONVERSATION FITS IN THIS WINDOW';
+      el.transcript.appendChild(boundary);
+    }
+
+    rememberedMsgs.forEach(m=>{
+      el.transcript.appendChild(renderMsg(m, true));
+    });
+
+    if(mode==='custom' && awaitingReply){
+      const typing = document.createElement('div');
+      typing.className = 'typing-msg';
+      typing.innerHTML = `Claude is generating a reply from what's in the window <span class="typing-dots"><span></span><span></span><span></span></span>`;
+      el.transcript.appendChild(typing);
+    }
+
+    // stats
+    el.statTokens.textContent = fmt(total) + ' / ' + fmt(windowSize);
+    el.utilFill.style.width = Math.min(100, (total/windowSize)*100) + '%';
+    const inCount = shown.filter(m=>inSet.has(m.idx)).length;
+    const outCount = shown.length - inCount;
+    el.statIn.textContent = inCount;
+    el.statOut.textContent = outCount;
+
+    // tracked (important) messages panel — generic across both modes
+    const trackedMsgs = shown.filter(m=>m.important);
+    if(trackedMsgs.length===0){
+      el.trackedList.innerHTML = '<div class="tracked-empty">Flag a message as important (★) to see whether it is still inside the window as it shrinks.</div>';
+    } else {
+      el.trackedList.innerHTML = '';
+      trackedMsgs.forEach(m=>{
+        const isIn = inSet.has(m.idx);
+        const row = document.createElement('div');
+        row.className = 'tracked-item';
+        const plain = m.isCustom ? m.text : m.text.replace(/<[^>]*>/g,'');
+        row.innerHTML = `
+          <div class="tracked-snippet">"${plain.length>90 ? plain.slice(0,90)+'…' : plain}"</div>
+          <div class="keyfact-badge ${isIn?'in':'out'}">${isIn?'still in context':'forgotten'}</div>
+        `;
+        el.trackedList.appendChild(row);
+      });
+    }
+
+    el.transcript.scrollTop = el.transcript.scrollHeight;
+  }
+
+  
+  function renderMsg(m, isIn){
+    const div = document.createElement('div');
+    div.className = 'msg ' + m.role + (isIn ? '' : ' out-window') + (m.isError ? ' error' : '');
+    const roleLabel = m.role==='user' ? 'You' : 'Assistant';
+    let tagHtml = '';
+    if(m.important) tagHtml = `<span class="tag-pill important">★ Important</span>`;
+    if(m.warn) tagHtml = `<span class="tag-pill warn">⚠ missing context</span>`;
+    const bodyText = m.isCustom ? escapeHtml(m.text).replace(/\n/g,'<br>') : m.text;
+    let captionHtml = '';
+    if(m.contextInfo){
+      const ci = m.contextInfo;
+      captionHtml = `<div class="context-caption">generated using ${ci.sentCount}/${ci.totalPriorCount} earlier message${ci.totalPriorCount===1?'':'s'} · ${fmt(ci.sentTokens)} tokens sent to the model</div>`;
+    }
+    div.innerHTML = `
+      <div class="msg-meta">
+        <span class="role-tag ${m.role}">${roleLabel}</span>
+        <span class="tok-tag">${fmt(m.tokens)} tok</span>
+        ${tagHtml}
+      </div>
+      <div class="msg-body">${bodyText}${m.code ? `<pre>${escapeHtml(m.code)}</pre>` : ''}</div>
+      ${captionHtml}
+    `;
+    return div;
+  }
+
+  function computeWindowMembershipCustom(list, ws){
+    let total = 0;
+    const inSet = new Set();
+    for(let i=list.length-1;i>=0;i--){
+      const tok = list[i].tokens;
+      if(total + tok <= ws || (i===list.length-1)){
+        total += tok;
+        inSet.add(list[i].idx);
+      } else break;
+    }
+    return {inSet, total};
+  }
+
+  // For any message flagged `conditional` (with textIn/textOut), work out — using only the
+  // messages that came before it — whether the important message(s) it depends on were still
+  // inside the window at the moment it would have been generated. Swap in the right or wrong
+  // answer accordingly, exactly like a real model would only ever see what's still in context.
+  function resolveConditionals(list){
+    list.forEach((m, i)=>{
+      if(!m.conditional) return;
+      const prior = list.slice(0, i);
+      const importantBefore = prior.filter(p=>p.important);
+      if(importantBefore.length===0){
+        m.text = m.textIn;
+        m.warn = false;
+        return;
+      }
+      const {inSet: priorInSet} = computeWindowMembershipCustom(prior, windowSize);
+      const available = importantBefore.every(p=>priorInSet.has(p.idx));
+      m.text = available ? m.textIn : m.textOut;
+      m.warn = !available;
+    });
+  }
+
+  // ---------------- Events ----------------
+  el.slider.addEventListener('input', ()=>{
+    windowSize = sliderToTokens(parseInt(el.slider.value,10));
+    render();
+  });
+
+  let playTimer = null;
+  el.replayBtn.addEventListener('click', ()=>{
+    if(awaitingReply) return;
+    if(playTimer) clearInterval(playTimer);
+    const total = getActiveMessages().length;
+    if(total===0) return;
+    revealCount = 0;
+    render();
+    el.replayBtn.disabled = true;
+    playTimer = setInterval(()=>{
+      revealCount++;
+      render();
+      if(revealCount>=total){
+        clearInterval(playTimer);
+        el.replayBtn.disabled = false;
+      }
+    }, 420);
+  });
+
+  // ---- mode switching ----
+  document.querySelectorAll('.mode-tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      if(awaitingReply) return;
+      document.querySelectorAll('.mode-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      mode = tab.dataset.mode;
+      if(playTimer){ clearInterval(playTimer); el.replayBtn.disabled = false; }
+      forgottenExpanded = false;
+
+      if(mode==='sample'){
+        el.transcriptTitle.textContent = 'Party-planning chat';
+        el.sampleFootnote.style.display = '';
+        el.composer.style.display = 'none';
+        revealCount = messages.length;
+      } else {
+        el.transcriptTitle.textContent = 'Your conversation';
+        el.sampleFootnote.style.display = 'none';
+        el.composer.style.display = '';
+        revealCount = customMessages.length;
+      }
+      render();
+    });
+  });
+
+  // ---- composer ----
+  function updateComposerTokenPreview(){
+    const tok = estimateTokens(el.composerText.value);
+    el.composerTokens.textContent = el.composerText.value.trim()
+      ? '~' + fmt(tok) + ' tokens'
+      : '~0 tokens';
+  }
+  el.composerText.addEventListener('input', updateComposerTokenPreview);
+
+  function setComposerBusy(busy){
+    awaitingReply = busy;
+    el.addMsgBtn.disabled = busy;
+    el.composerText.disabled = busy;
+    el.addMsgBtn.textContent = busy ? 'Sending…' : 'Send ➜';
+  }
+
+  async function sendCustomMessage(){
+    if(awaitingReply) return;
+    const text = el.composerText.value.trim();
+    if(!text) return;
+
+    customMessages.push({
+      role: 'user',
+      text,
+      tokens: estimateTokens(text),
+      isCustom: true,
+      important: el.importantCheck.checked,
+      idx: customMessages.length,
+    });
+    el.composerText.value = '';
+    el.importantCheck.checked = false;
+    updateComposerTokenPreview();
+    revealCount = customMessages.length;
+    setComposerBusy(true);
+    render();
+
+    // Work out exactly what a real request would include: only messages
+    // still inside the chosen window, truncating the oldest ones first.
+    const { inSet } = computeWindowMembershipCustom(customMessages, windowSize);
+    let trimmed = customMessages.filter(m => inSet.has(m.idx));
+    // The API requires the message list to start with a 'user' turn —
+    // if truncation left a dangling assistant reply at the front, drop it.
+    while(trimmed.length && trimmed[0].role === 'assistant'){
+      trimmed = trimmed.slice(1);
+    }
+    const sentTokens = trimmed.reduce((s,m)=>s+m.tokens,0);
+    const totalPriorCount = customMessages.length - 1; // excludes the message we just sent
+    const sentCount = trimmed.length - 1; // excludes the message we just sent (always included)
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          system: 'You are a helpful assistant in a casual conversation. Only rely on facts the person has actually told you in this conversation — never assume or invent personal details they have not shared. If something they are asking about depends on information they have not given you (in what you can see of this conversation), say so plainly rather than guessing.',
+          messages: trimmed.map(m => ({ role: m.role, content: m.text })),
+        }),
+      });
+      const data = await response.json();
+      if(!response.ok){
+        throw new Error((data && data.error && data.error.message) || `Request failed (${response.status})`);
+      }
+      const replyText = (data.content || [])
+        .map(block => block.type === 'text' ? block.text : '')
+        .filter(Boolean)
+        .join('\n\n') || '(empty response)';
+      const outTokens = (data.usage && data.usage.output_tokens) || estimateTokens(replyText);
+
+      customMessages.push({
+        role: 'assistant',
+        text: replyText,
+        tokens: outTokens,
+        isCustom: true,
+        important: false,
+        idx: customMessages.length,
+        contextInfo: { sentCount: Math.max(0,sentCount), totalPriorCount: Math.max(0,totalPriorCount), sentTokens },
+      });
+    } catch(err){
+      customMessages.push({
+        role: 'assistant',
+        text: `Couldn't get a reply: ${err.message || 'network error'}`,
+        tokens: 20,
+        isCustom: true,
+        important: false,
+        isError: true,
+        idx: customMessages.length,
+      });
+    } finally {
+      revealCount = customMessages.length;
+      setComposerBusy(false);
+      render();
+      el.composerText.focus();
+    }
+  }
+
+  el.addMsgBtn.addEventListener('click', sendCustomMessage);
+  el.composerText.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter' && !e.shiftKey){
+      e.preventDefault();
+      sendCustomMessage();
+    }
+  });
+  el.clearCustomBtn.addEventListener('click', ()=>{
+    if(awaitingReply) return;
+    customMessages = [];
+    revealCount = 0;
+    render();
+  });
+
+  // ---------------- Init ----------------
+  buildPresets();
+  el.slider.value = tokensToSlider(windowSize);
+  render();
+})();
+</script>
+</body>
+</html>

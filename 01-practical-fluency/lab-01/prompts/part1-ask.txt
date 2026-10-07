@@ -1,0 +1,2 @@
+Is this bad?
+ALERT A2 (Linux Auth Log): srv-web-01: 45 failed SSH logins for user 'root' from 203.0.113.45 between 02:10 and 02:12, followed by 1 successful login for 'root' from the same IP at 02:13.

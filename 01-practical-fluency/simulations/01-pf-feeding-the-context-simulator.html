@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4. Feeding the context | Module 1 Practical Fluency</title>
+<style>
+:root{--ink:#0E3B43;--steel:#4B6475;--mist:#EEF3F5;--line:#D3DEE4;--amber:#7A4FA3;
+--amber-soft:#F0E9F7;--teal:#2B7BB9;--teal-soft:#E4F0F8;--red:#B83227;--red-soft:#F8E1DE;--paper:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Calibri,Arial,sans-serif;color:var(--ink);background:var(--paper);line-height:1.55;font-size:16px}
+header{background:var(--ink);color:#fff;padding:22px 24px 18px}
+header .mod{font-size:14px;opacity:.8;margin:0}
+header h1{margin:4px 0 6px;font-family:Cambria,Georgia,serif;font-size:30px;font-weight:700}
+header .note{font-size:13px;opacity:.85;margin:0}
+main{max-width:980px;margin:0 auto;padding:22px 20px 40px}
+h2{font-family:Cambria,Georgia,serif;font-size:22px;margin:26px 0 8px}
+p{margin:6px 0 10px;max-width:75ch}
+.box{background:var(--mist);border-radius:10px;padding:16px 18px;margin:12px 0}
+.goal{background:var(--amber-soft)}
+.good{background:var(--teal-soft)}
+.bad{background:var(--red-soft)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:760px){.grid2{grid-template-columns:1fr}}
+button{font:inherit;font-size:15px;border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer;margin:4px 6px 4px 0}
+button:hover{background:var(--mist)}
+button.primary{background:var(--ink);color:#fff}
+button.primary:hover{background:#16525D}
+button.on{background:var(--teal);border-color:var(--teal);color:#fff}
+button:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+pre,.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+pre{background:#0A2C33;color:#E6EDF5;border-radius:10px;padding:14px 16px;white-space:pre-wrap;word-break:break-word;margin:10px 0;min-height:44px}
+.out{background:#fff;border:2px solid var(--line);border-radius:10px;padding:14px 16px;min-height:60px;white-space:pre-wrap}
+.tag{display:inline-block;font-size:13px;padding:2px 10px;border-radius:20px;background:var(--mist);margin-right:6px}
+.tag.ok{background:var(--teal-soft);color:#1C4F78}.tag.no{background:var(--red-soft);color:#7a1d16}.tag.warn{background:var(--amber-soft);color:#4E2F6E}
+.meter{height:14px;background:var(--mist);border-radius:8px;overflow:hidden;margin:6px 0}
+.meter>div{height:100%;background:var(--teal);width:0;transition:width .3s}
+.card{border:2px solid var(--line);border-radius:10px;padding:12px 14px;margin:10px 0;background:#fff}
+.card.sel{border-color:var(--teal);background:var(--teal-soft)}
+.card.blocked{border-color:var(--red);background:var(--red-soft)}
+.hidden{display:none}
+.learn{border-left:0;background:var(--teal-soft);border-radius:10px;padding:14px 18px;margin-top:18px}
+nav.pager{display:flex;justify-content:space-between;gap:10px;margin-top:30px;padding-top:14px;border-top:1px solid var(--line)}
+nav.pager a{color:var(--ink);font-weight:600}
+ins{background:#E4F0F8;text-decoration:none;color:#1C4F78}
+table{border-collapse:collapse;width:100%;font-size:15px}
+td,th{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--mist)}
+.small{font-size:14px;color:var(--steel)}
+.howto{background:#fff;border:2px solid var(--line);border-radius:10px;padding:12px 18px 12px 38px;margin:12px 0}
+.howto li{margin:4px 0}
+.m0{display:block;margin-top:8px;font-size:15px}
+#prog{font-size:14px;color:var(--steel);margin:6px 0 0}
+@media (prefers-reduced-motion:reduce){.meter>div{transition:none}}
+</style></head>
+<body>
+<header><p class="mod">AI Bootcamp &middot; Module 1: Practical fluency</p>
+<h1>4. Feeding the context</h1>
+<p class="note">Simulation: all AI answers here are pre-written examples. No real AI is called and no data leaves this page.</p></header>
+<main>
+
+<div class="box goal"><b>Goal:</b> give the AI the right evidence: relevant, small, and safe.<br>
+<b>Think of it like...</b> the papers you bring to a doctor. Your symptoms and test results help. Your grocery receipts do not. A 500-page printout gets skimmed and important pages get missed.<span class="m0"><b>From Module 0: remember BANANA-77? Too much text and the start gets cut off.</b></span></div>
+<ol class="howto"><li>Click <b>Ask AI</b> with no context.</li><li>Add the 3 relevant items one at a time, asking after each.</li><li>Add the memo, the password, and the raw dump. Watch the meter and the warnings.</li></ol>
+<p id="prog">Explored: 0 of 6</p>
+<h2>Scenario</h2>
+<p>Question for the AI: <i>"Is the 02:13 root login on srv-web-01 suspicious?"</i><br>
+Click items to add or remove them from the context. Then click <b>Ask AI</b>.</p>
+<div id="items"></div>
+<p class="small">Context window used: <span id="tok">0</span> of 8,000 tokens</p>
+<div class="meter"><div id="meter"></div></div>
+<button class="primary" id="ask">Ask AI (simulated)</button>
+<h2>AI answer</h2>
+<div class="out" id="ans">Add context, then ask.</div>
+<div class="learn hidden" id="learn"><b>What you learned</b><br>
+Good context is <b>relevant</b> (helps answer this question), <b>right-sized</b> (fits the window; extract the important lines),
+and <b>safe</b> (no secrets, masked personal data). More is not better. Better is better.</div>
+
+<nav class="pager"><a href="01-pf-custom-instructions-simulator.html">&larr; 3. Custom instructions and projects</a> <a href="01-pf-iterative-refinement-simulator.html">5. Iterative refinement &rarr;</a></nav>
+</main>
+<script>
+function $(id){return document.getElementById(id);}
+var SEEN={},TOTAL=0;function seen(k){SEEN[k]=1;var n=Object.keys(SEEN).length,el=document.getElementById("prog");if(el)el.textContent=n>=TOTAL?"All "+TOTAL+" explored. Nice work.":"Explored: "+n+" of "+TOTAL;}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+TOTAL=6;
+var items=[
+ {k:"log",t:"Auth log: 45 failed root logins from 203.0.113.45, then success at 02:13",tok:400,type:"rel"},
+ {k:"base",t:"Baseline: root never logs in remotely; admins use named accounts",tok:300,type:"rel"},
+ {k:"asset",t:"Asset info: srv-web-01 is internet-facing, criticality HIGH",tok:200,type:"rel"},
+ {k:"memo",t:"HR memo about the year-end party",tok:900,type:"noise"},
+ {k:"pass",t:"The root password for srv-web-01",tok:20,type:"secret"},
+ {k:"dump",t:"Full 30-day raw log export (2 million lines)",tok:50000,type:"huge"}];
+var on={};
+function render(){var h="";var tot=0;items.forEach(function(it){var cls="card";if(on[it.k])cls+=(it.type==="secret"?" blocked":" sel");if(on[it.k])tot+=it.tok;
+ h+='<div class="'+cls+'" id="i_'+it.k+'" tabindex="0" role="button" aria-pressed="'+(!!on[it.k])+'">'+(on[it.k]?"&#10003; ":"+ ")+esc(it.t)+' <span class="tag">'+it.tok.toLocaleString()+' tokens</span>'+(on[it.k]&&it.type==="secret"?'<div class="small"><span class="tag no">BLOCKED</span>Secrets must never be pasted into AI. Remove it.</div>':'')+'</div>';});
+ $("items").innerHTML=h;$("tok").textContent=tot.toLocaleString();$("meter").style.width=Math.min(100,tot/80)+"%";$("meter").style.background=tot>8000?"var(--red)":"var(--teal)";
+ items.forEach(function(it){var el=$("i_"+it.k);var go=function(){on[it.k]=!on[it.k];if(on[it.k])seen(it.k);render();};el.onclick=go;el.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}};});}
+$("ask").onclick=function(){
+ var a;
+ if(on.pass){a="STOP: your context contains a password. In real life it is now in the AI provider's logs. Remove it, then rotate that password because it was exposed.";}
+ else if(on.dump){a="Context is too large (over 50,000 tokens for an 8,000-token window). Most of it was cut off. I could not see the 02:13 events.\nTip: filter the log to srv-web-01, 02:00-02:30, and paste only those lines.";}
+ else{var rel=["log","base","asset"].filter(function(k){return on[k];}).length;
+  if(rel===0)a="I need evidence. Please share the relevant log lines for srv-web-01 around 02:13.";
+  else if(rel===1)a="45 failed logins followed by a success looks like a brute-force attack that worked. But I don't know if root logins are normal here or how important this server is. Medium confidence.";
+  else if(rel===2)a="Yes, suspicious. Root normally never logs in remotely, and the success came right after 45 failures from one IP. Likely a successful brute force. I don't know the server's importance.";
+  else a="Yes, highly suspicious (HIGH). Brute force succeeded on an internet-facing, high-criticality server, and root never logs in remotely here. Next step for the analyst: escalate to Tier 2 now and check what root did after 02:13.";
+  if(on.memo)a+="\n\n(Note: the HR party memo was not relevant and used 900 tokens of your window.)";}
+ $("ans").textContent=a;$("learn").classList.remove("hidden");};
+render();
+
+</script>
+</body></html>
