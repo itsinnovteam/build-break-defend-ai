@@ -1,11 +1,11 @@
-# Lab 2 – Trust but verify AI code (CPU only, no GPU)
+# Lab 2 - Trust but verify AI code (CPU only, no GPU)
 
-Full step-by-step instructions are in Module2_Learner_Guide.docx (Part B).
+Full step-by-step instructions are in Module2-AIEngineeringSecurityWorkflow.pptx (Part B).
 
 **Two tracks, same lesson:**
-- **Track A – Reviewer (no coding):** open `../simulations/sim6_lab2_reviewer_track.html`
+- **Track A - Reviewer (no coding):** open `../simulations/sim6_lab2_reviewer_track.html`
   in a browser on your Windows laptop. Nothing to install. You do not need this folder.
-- **Track B – Hands-on (Python):** use this folder on your Module 0 VM in OCI.
+- **Track B - Hands-on (Python):** use this folder on your Module 0 VM in OCI.
 
 ## Setup (Track B runs on your Module 0 VM in OCI, same as Lab 1)
 Nothing to install on your Windows laptop: `ssh` and `scp` are built into Windows 10 and 11.
@@ -40,7 +40,7 @@ Edit files with `nano` (`sudo dnf install nano` once) or `vi`.
 | `ollama run llama3.1:8b < prompts/p1_security_review.txt` | AI security review on the VM (Part 4) |
 | `ollama run llama3.1:8b < prompts/p2_fix_R6.txt` | Ask the AI to fix one rule (Part 5) |
 | `ollama run llama3.1:8b < prompts/p3_tests_R6.txt` | Ask the AI for tests for one rule (Part 5) |
-| `python check_fix.py` | Checks your fixed code against SPEC.md (R1–R7) |
+| `python check_fix.py` | Checks your fixed code against SPEC.md (R1-R7) |
 
 Option B (approved chat tool): copy the text of each prompt file into the chat instead.
 
@@ -54,8 +54,8 @@ Option B (approved chat tool): copy the text of each prompt file into the chat i
 | prompts/ | Ready-to-send prompt files (P1, P2 per rule, P3 per rule) | no |
 | sample_auth.log | Fake SSH log (documentation IPs only) | no |
 | demo_attacks.py, meta_test.py, check_fix.py | Lab tools | no |
-| meta/, checker/ | Used by the tools – contains answers, don't peek | no |
-| solution/ | Instructor answer key – remove before giving to learners if you want | no |
+| meta/, checker/ | Used by the tools - contains answers, don't peek | no |
+| solution/ | Instructor answer key - remove before giving to learners if you want | no |
 
 All data is fake. Follow the Module 1 safety rules: never paste real logs or secrets into an AI tool.
 
