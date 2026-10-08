@@ -1,0 +1,14 @@
+FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.
+
+Write pytest tests for SPEC rule R6 of triage_tool.py.
+Requirements: name every test test_r6_<something>,
+include boundary values and at least one malicious input,
+each test must FAIL if the rule is broken,
+use tmp_path for files and monkeypatch for environment variables,
+no network, no real data. Put any sample log lines directly
+inside the test file. Import build_intel_request from triage_tool.
+Show only the Python code.
+
+<rule>
+R6 - build_intel_request(ip): Read the token from the environment variable THREAT_INTEL_TOKEN each time the function is called (not once when the file is imported). If it is not set, raise RuntimeError. No token may be written in the source code.
+</rule>

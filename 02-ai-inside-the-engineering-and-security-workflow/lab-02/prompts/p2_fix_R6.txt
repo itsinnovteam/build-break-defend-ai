@@ -1,0 +1,20 @@
+FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.
+
+Fix ONLY SPEC rule R6 in the function below.
+Rules: keep the function name and parameters exactly the same,
+use only the Python standard library, do not use a shell,
+do not hardcode secrets. Show the full corrected function,
+then explain the change in 2 sentences.
+
+<rule>
+R6 - build_intel_request(ip): Read the token from the environment variable THREAT_INTEL_TOKEN each time the function is called (not once when the file is imported). If it is not set, raise RuntimeError. No token may be written in the source code.
+</rule>
+
+<function>
+def build_intel_request(ip):
+    """Return the URL and headers used to query the threat-intel service."""
+    return {
+        "url": INTEL_URL + ip,
+        "headers": {"Authorization": "Bearer " + THREAT_INTEL_TOKEN},
+    }
+</function>

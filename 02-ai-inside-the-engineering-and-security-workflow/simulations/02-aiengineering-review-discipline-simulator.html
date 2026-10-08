@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulation 2 - The Review Discipline</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:980px;margin:0 auto}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px}
+header p{margin:0;color:#D5E3F0}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;background:var(--navy);color:#fff;outline:3px solid var(--amber)}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;background:var(--teal-l);color:var(--teal);font-weight:600}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{background:#EEF2F6}
+footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:600px){header h1{font-size:21px}.card{padding:14px}}
+</style></head>
+<body>
+<header><div class="wrap"><small>Section 2 - The review discipline</small><h1>Simulation 2 - The Review Discipline</h1><p>Be the reviewer. Find what the AI got wrong before it reaches production, and match review effort to risk.</p></div></header>
+<main>
+
+<div class="card">
+  <h2>Part A - Review the AI's code before it runs</h2>
+  <div class="analogy"><b>Think of it like...</b> A building inspector. The contractor (AI) works fast, but nobody moves in until the inspector signs. If the building falls, "the contractor built it" is not a defence - the inspector signed.</div>
+  <p><b>The requirement given to the AI:</b></p>
+  <div class="how mono">Delete <b>.log</b> files older than 30 days, <b>only inside D:\logs\app</b>. <b>Dry-run by default</b> (print, don't delete). <b>Report any errors.</b></div>
+  <div class="how"><b>How to play:</b> Click every line that breaks the requirement or is unsafe. There are <b>6</b>. Then press <b>Submit review</b>.</div>
+  <div id="code" class="mono" style="background:#0F1B28;color:#E6EDF3;padding:10px 0;border-radius:8px;white-space:pre;overflow-x:auto"></div>
+  <p><button onclick="submitReview()">Submit review</button><button class="ghost" onclick="resetReview()">Reset</button> <span id="sel" class="pill">0 lines flagged</span></p>
+  <div id="revFb" class="fb"></div>
+</div>
+
+<div class="card">
+  <h2>Part B - How deep should the review be?</h2>
+  <div class="analogy"><b>Think of it like...</b> Airport security. A carry-on bag gets an X-ray; a suspicious bag gets opened by hand; cargo for a VIP flight gets a second team. Effort follows risk.</div>
+  <div class="how"><b>How to play:</b> Pick the review level for each AI output.<br>
+  <b>Light</b> = read it and sanity-check. <b>Standard</b> = read every line, run it, test edge cases. <b>Deep</b> = Standard + security scan + a second human reviewer before production.</div>
+  <div id="depth"></div>
+  <p class="score" id="depthScore"></p>
+</div>
+
+<div class="card">
+  <h2>The review discipline - 5 steps</h2>
+  <table>
+   <tr><th>Step</th><th>Question to ask</th><th>Would have caught (Part A)</th></tr>
+   <tr><td>1. Understand</td><td>Can I explain every line in my own words?</td><td>Line 12 - why is it deleting a whole folder?</td></tr>
+   <tr><td>2. Compare to spec</td><td>Does it do what was asked - and nothing more?</td><td>Lines 10, 11, 15 (no .log filter, no dry-run, no folder limit)</td></tr>
+   <tr><td>3. Run &amp; test</td><td>What happens with edge cases and bad input?</td><td>Line 16 - says "no errors" even when files failed</td></tr>
+   <tr><td>4. Scan</td><td>What do the security tools say (secrets, SAST, dependencies)?</td><td>Line 3 - hardcoded password</td></tr>
+   <tr><td>5. Own</td><td>Would I sign this with my name?</td><td>All of them - you are accountable, not the AI</td></tr>
+  </table>
+</div>
+
+</main>
+<footer>AI Bootcamp - Module 2: AI inside the engineering and security workflow. Works offline; all data is fictional.</footer>
+<script>
+
+const CODE = [
+ ["import os, shutil, sys, time",0],
+ ["",0],
+ ['SHARE_PASSWORD = "Backup#2026"   # used to map the log share',1,"Hardcoded secret. Anyone with the repo has the password. Use a secrets vault or environment variable."],
+ ["",0],
+ ["def cleanup(folder, days=30):",0],
+ ["    cutoff = time.time() - days * 24 * 60 * 60",0],
+ ["    for root, dirs, files in os.walk(folder):",0],
+ ["        for name in files:",0],
+ ["            path = os.path.join(root, name)",0],
+ ["            if os.path.getmtime(path) < cutoff:",1,"Checks age but not file type. It will delete ANY old file (configs, databases), not only .log files."],
+ ["                os.remove(path)",1,"Deletes immediately. The requirement said dry-run by default (print what would be deleted)."],
+ ['    shutil.rmtree(os.path.join(folder, "tmp"), ignore_errors=True)',1,"Not requested: deletes a whole folder regardless of age, and ignore_errors hides failures."],
+ ["",0],
+ ['if __name__ == "__main__":',0],
+ ["    cleanup(sys.argv[1])",1,"Accepts any folder from the command line - a typo like C:\\ or / becomes a disaster. Must be limited to D:\\logs\\app."],
+ ['    print("Cleanup complete - no errors")',1,"Claims success without checking. The requirement said report errors. A false 'all good' is worse than no message."]
+];
+const flagged=new Set(); let submitted=false;
+function renderCode(){
+  const box=document.getElementById('code'); box.innerHTML='';
+  CODE.forEach((c,i)=>{
+    const d=document.createElement('div');
+    d.style.padding='2px 12px'; d.style.cursor='pointer'; d.style.minHeight='1.5em';
+    let bg='transparent';
+    if(flagged.has(i)) bg='#7A5A12';
+    if(submitted){ if(c[1]&&flagged.has(i)) bg='#1E6B45'; else if(c[1]) bg='#8A2C2C'; else if(flagged.has(i)) bg='#6B5A2A'; }
+    d.style.background=bg;
+    d.textContent=String(i+1).padStart(2,' ')+'  '+c[0];
+    d.onclick=()=>{ if(submitted) return; flagged.has(i)?flagged.delete(i):flagged.add(i); renderCode(); };
+    box.appendChild(d);
+  });
+  document.getElementById('sel').textContent=flagged.size+' lines flagged';
+}
+function submitReview(){
+  submitted=true; renderCode();
+  let found=0,fp=[]; const rows=[];
+  CODE.forEach((c,i)=>{
+    if(c[1]){ const hit=flagged.has(i); if(hit) found++;
+      rows.push(`<li>${hit?'<span class="ok">Found</span>':'<span class="bad">Missed</span>'} - line ${i+1}: ${c[2]}</li>`);}
+    else if(flagged.has(i)) fp.push(i+1);
+  });
+  const fb=document.getElementById('revFb');
+  fb.innerHTML=`<p class="score">You found ${found} of 6 issues.</p><p>Green = found, red = missed.</p><ul>${rows.join('')}</ul>`+
+   (fp.length?`<p class="warn">${fp.length>1?'Lines':'Line'} ${fp.join(', ')} ${fp.length>1?'are':'is'} fine. Over-flagging is not a crime, but it costs review time.</p>`:'')+
+   '<p><b>Notice:</b> this code would run without any error message. Every issue is a "works but wrong" problem - only a review against the requirement catches it.</p>';
+  fb.className='fb show '+(found===6?'good':(found>=4?'mid':'no'));
+}
+function resetReview(){flagged.clear();submitted=false;renderCode();document.getElementById('revFb').className='fb';}
+renderCode();
+
+const D=[
+ ["AI wrote a regular expression to tidy the titles in your personal weekly report.","Light","Low impact, only you use it, easy to spot if wrong."],
+ ["AI wrote a SIEM query (Splunk/KQL) for a SOC dashboard the whole team will use for triage.","Standard","Run it against known data. A query that silently returns too little hides real attacks."],
+ ["AI wrote a script that deletes files on production file servers.","Deep","Destructive and hard to undo. Dry-run, scan, second reviewer, test on a copy first."],
+ ["AI wrote automation that changes firewall rules on the perimeter.","Deep","A mistake opens the network or causes an outage. Peer review and change management are mandatory."],
+ ["AI drafted an email to your own team summarizing yesterday's meeting.","Light","Read it before sending; check names, dates and decisions are correct."],
+ ["AI wrote a detection rule (Sigma/YARA) that will alert the on-call analyst at night.","Standard","Test against true-positive and benign samples; noisy or blind rules both hurt."]
+];
+const dAns={};
+function renderDepth(){
+ document.getElementById('depth').innerHTML=D.map((d,i)=>`<div style="border-top:1px solid var(--line);padding:10px 0">
+   <p><b>${i+1}.</b> ${d[0]}</p>
+   ${['Light','Standard','Deep'].map(l=>`<button class="ghost" id="d${i}${l}" onclick="pickD(${i},'${l}')">${l}</button>`).join('')}
+   <div id="df${i}" class="fb"></div></div>`).join('');
+}
+function pickD(i,l){
+ if(dAns[i]) return; dAns[i]=l;
+ ['Light','Standard','Deep'].forEach(x=>document.getElementById('d'+i+x).disabled=true); document.getElementById('d'+i+l).classList.add('chosen');
+ const ok=(l===D[i][1]), f=document.getElementById('df'+i);
+ f.innerHTML=(ok?'<span class="ok">Correct.</span> ':`<span class="bad">Recommended: ${D[i][1]}.</span> `)+D[i][2];
+ f.className='fb show '+(ok?'good':'no');
+ const n=Object.keys(dAns).length, s=Object.keys(dAns).filter(k=>dAns[k]===D[k][1]).length;
+ document.getElementById('depthScore').textContent = n===D.length?`Score: ${s} / ${D.length}`:`Answered ${n} of ${D.length}`;
+}
+renderDepth();
+
+</script>
+</body></html>

@@ -1,0 +1,14 @@
+FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.
+
+Write pytest tests for SPEC rule R5 of triage_tool.py.
+Requirements: name every test test_r5_<something>,
+include boundary values and at least one malicious input,
+each test must FAIL if the rule is broken,
+use tmp_path for files and monkeypatch for environment variables,
+no network, no real data. Put any sample log lines directly
+inside the test file. Import check_reputation from triage_tool.
+Show only the Python code.
+
+<rule>
+R5 - check_reputation(ip, feed): Return feed[ip] if the IP is in the feed. If the IP is not in the feed, or the feed is None, return "unknown". Never return "clean" by default (fail closed).
+</rule>

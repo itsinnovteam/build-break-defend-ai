@@ -1,0 +1,14 @@
+FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.
+
+Write pytest tests for SPEC rule R2 of triage_tool.py.
+Requirements: name every test test_r2_<something>,
+include boundary values and at least one malicious input,
+each test must FAIL if the rule is broken,
+use tmp_path for files and monkeypatch for environment variables,
+no network, no real data. Put any sample log lines directly
+inside the test file. Import is_brute_force from triage_tool.
+Show only the Python code.
+
+<rule>
+R2 - is_brute_force(count, threshold=5): Return True when count is 5 or more (count >= threshold).
+</rule>

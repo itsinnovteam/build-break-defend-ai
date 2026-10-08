@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 2 - Simulations</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:980px;margin:0 auto}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px}
+header p{margin:0;color:#D5E3F0}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;background:var(--navy);color:#fff;outline:3px solid var(--amber)}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;background:var(--teal-l);color:var(--teal);font-weight:600}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{background:#EEF2F6}
+footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:600px){header h1{font-size:21px}.card{padding:14px}}
+</style></head>
+<body>
+<header><div class="wrap"><small>AI Bootcamp - Module 2</small><h1>Module 2 - Simulations</h1><p>Practice pages for AI inside the engineering and security workflow.</p></div></header>
+<main>
+
+<div class="card">
+  <h2>Start here</h2>
+  <div class="how">Open these pages when a slide says <b>Try it</b>. They work offline in any browser and no real AI is called. Your progress is not saved when you close a page.</div>
+  <div style="overflow-x:auto"><table>
+   <tr><th>Section</th><th>Page</th><th>What you practise</th><th>Time</th></tr>
+   <tr><td>1</td><td><a href="sim1_best_practices.html"><b>Best practices for using AI assistants</b></a><br><span class="mono" style="font-size:12px">sim1_best_practices.html</span></td><td>Safe and effective prompting: redact code and errors, R-C-T-F-C for engineering work</td><td style="white-space:nowrap">10 min</td></tr>
+   <tr><td>2</td><td><a href="sim2_review_discipline.html"><b>The review discipline</b></a><br><span class="mono" style="font-size:12px">sim2_review_discipline.html</span></td><td>Review an AI-written script; choose Light, Standard or Deep review</td><td style="white-space:nowrap">10 min</td></tr>
+   <tr><td>3</td><td><a href="sim3_failure_modes.html"><b>Understanding AI failure modes</b></a><br><span class="mono" style="font-size:12px">sim3_failure_modes.html</span></td><td>Name that failure: 8 cases, 4 from Module 0 and 4 new</td><td style="white-space:nowrap">10 min</td></tr>
+   <tr><td>4</td><td><a href="sim4_security_uses.html"><b>Security uses</b></a><br><span class="mono" style="font-size:12px">sim4_security_uses.html</span></td><td>SOC shift with an AI co-pilot: Use it, Verify first or Reject (alert A3 from Lab 1)</td><td style="white-space:nowrap">10 min</td></tr>
+   <tr><td>5</td><td><a href="sim6_lab2_reviewer_track.html"><b>Lab 2 - Track A</b></a><br><span class="mono" style="font-size:12px">sim6_lab2_reviewer_track.html</span></td><td>Reviewer track: the whole Lab 2 lesson in the browser, no coding</td><td style="white-space:nowrap">45 min</td></tr>
+   <tr><td>5</td><td><a href="sim5_lab2_trust_but_verify.html"><b>Lab 2 - both tracks</b></a><br><span class="mono" style="font-size:12px">sim5_lab2_trust_but_verify.html</span></td><td>Catch matrix, trust slider and lab progress tracker</td><td style="white-space:nowrap">10 min</td></tr>
+   <tr><td>End</td><td><a href="final_assessment.html"><b>Final assessment</b></a><br><span class="mono" style="font-size:12px">final_assessment.html</span></td><td>12 scenario questions, pass mark 10 of 12, printable result</td><td style="white-space:nowrap">15 min</td></tr>
+  </table></div>
+</div>
+<div class="card">
+  <h2>How Module 2 builds on Modules 0 and 1</h2>
+  <table>
+   <tr><th>Before</th><th>In Module 2</th></tr>
+   <tr><td>Module 0: the model invented a book and a Python function with total confidence</td><td>Verify AI-written <b>code</b> with a review discipline, tests and meta-tests</td></tr>
+   <tr><td>Module 1: R-C-T-F-C prompts and the five safety rules</td><td>Apply them to code, configs and error messages</td></tr>
+   <tr><td>Module 1: Use it / Verify first / Reject</td><td>Apply it to every AI co-pilot suggestion in a security workflow</td></tr>
+   <tr><td>Lab 1: you built a triage assistant in chat</td><td>Lab 2: you review and fix triage <b>code</b> an AI wrote; Lab 3 builds the CLI tool</td></tr>
+  </table>
+</div>
+
+</main>
+<footer>AI Bootcamp - Module 2: AI inside the engineering and security workflow. Works offline; all data is fictional.</footer>
+<script>
+
+</script>
+</body></html>

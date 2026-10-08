@@ -1,0 +1,14 @@
+FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.
+
+Write pytest tests for SPEC rule R4 of triage_tool.py.
+Requirements: name every test test_r4_<something>,
+include boundary values and at least one malicious input,
+each test must FAIL if the rule is broken,
+use tmp_path for files and monkeypatch for environment variables,
+no network, no real data. Put any sample log lines directly
+inside the test file. Import lookup_user from triage_tool.
+Show only the Python code.
+
+<rule>
+R4 - lookup_user(conn, username): Return (username, department) or None. Must use a parameterized SQL query. Input like x' OR '1'='1 must return None.
+</rule>

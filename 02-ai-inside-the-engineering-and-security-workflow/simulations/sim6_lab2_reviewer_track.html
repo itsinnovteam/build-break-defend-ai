@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lab 2 - Reviewer Track (no coding)</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:980px;margin:0 auto}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px}
+header p{margin:0;color:#D5E3F0}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;background:var(--navy);color:#fff;outline:3px solid var(--amber)}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;background:var(--teal-l);color:var(--teal);font-weight:600}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{background:#EEF2F6}
+footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:600px){header h1{font-size:21px}.card{padding:14px}}
+</style><style>.term{background:#0F1B28;color:#E6EDF3;padding:12px 14px;border-radius:8px;white-space:pre;overflow-x:auto;font-size:13px} code{background:#EEF2F6;padding:1px 5px;border-radius:4px;font-family:Consolas,'Courier New',monospace}</style></head>
+<body>
+<header><div class="wrap"><small>Section 5 - Lab 2, Track A</small><h1>Lab 2 - Reviewer Track (no coding)</h1><p>The full Lab 2 lesson in your browser: no Python, no installation. Review AI code, read the real evidence, and decide how much to trust it.</p></div></header>
+<main>
+
+<div class="card">
+  <h2>Who this track is for</h2>
+  <p>Service desk, network, managers, analysts - anyone who does not write Python. You do the <b>same lab</b> and reach the <b>same lesson</b> as the hands-on track, but the developer has already run every command for you. Every output on this page is the <b>real output</b> captured from the lab files.</p>
+  <div class="analogy"><b>Think of it like...</b> A building inspector does not need to lay bricks. They need to know the plans (the SPEC), where builders cut corners, and which tests prove the building is safe.</div>
+  <p class="score" id="prog">Steps completed: 0 of 6</p>
+</div>
+
+<div class="card">
+  <h2>The SPEC - what the tool must do</h2>
+  <div class="how">An AI wrote a tool for the SOC that reads an SSH log, counts failed logins per IP, flags brute force, looks up users, checks IP reputation, and blocks bad IPs. These are the rules it must follow. Keep them in mind for every step.</div>
+  <div style="overflow-x:auto"><table><tr><th>Rule</th><th>Function</th><th>Required behaviour</th></tr><tr><td>R1</td><td><code>parse_failed_logins(lines)</code></td><td>Return <code>{ip: count}</code>. Count every line with <code>Failed password for &lt;user&gt; from &lt;ip&gt;</code> including <code>Failed password for invalid user &lt;user&gt; from &lt;ip&gt;</code>. Ignore all other lines.</td></tr><tr><td>R2</td><td><code>is_brute_force(count, threshold=5)</code></td><td>Return <code>True</code> when <code>count</code> is 5 or more (<code>count &gt;= threshold</code>).</td></tr><tr><td>R3</td><td><code>is_valid_ip(ip)</code></td><td>Return <code>True</code> only for a real IPv4 address (four numbers, each 0–255). Return <code>False</code> for anything else (e.g. <code>999.1.1.1</code>, <code>1.2.3</code>, <code>abc</code>, <code>1.2.3.4; rm -rf /</code>, and IPv6 addresses such as <code>::1</code>). Never raise.</td></tr><tr><td>R4</td><td><code>lookup_user(conn, username)</code></td><td>Return <code>(username, department)</code> or <code>None</code>. Must use a parameterized SQL query. Input like <code>x&#x27; OR &#x27;1&#x27;=&#x27;1</code> must return <code>None</code>.</td></tr><tr><td>R5</td><td><code>check_reputation(ip, feed)</code></td><td>Return <code>feed[ip]</code> if the IP is in the feed. If the IP is not in the feed, or the feed is <code>None</code>, return <code>&quot;unknown&quot;</code>. Never return <code>&quot;clean&quot;</code> by default (fail closed).</td></tr><tr><td>R6</td><td><code>build_intel_request(ip)</code></td><td>Read the token from the environment variable <code>THREAT_INTEL_TOKEN</code> each time the function is called (not once when the file is imported). If it is not set, raise <code>RuntimeError</code>. No token may be written in the source code.</td></tr><tr><td>R7</td><td><code>block_ip(ip, blocklist_path=&quot;blocklist.txt&quot;)</code></td><td>If <code>ip</code> is not valid (R3), raise <code>ValueError</code> and write nothing. Otherwise append the line <code>BLOCK &lt;ip&gt;</code> to the file. Must not use a shell.</td></tr></table></div>
+</div>
+
+<div class="card" id="s1">
+  <h2>Step 1 - Hunt: review the code by eye</h2>
+  <div class="how"><b>How to do it:</b> Read each function and compare it with its SPEC rule. Click every line that breaks a rule. There are <b>7</b> problems (one per rule). Then press <b>Submit</b>. Record what you found in Worksheet W1.</div>
+  <div id="code" class="mono" style="background:#0F1B28;color:#E6EDF3;padding:8px 0;border-radius:8px;white-space:pre;overflow-x:auto;max-height:560px;overflow-y:auto"></div>
+  <p><button onclick="submitHunt()">Submit</button> <span id="nsel" class="pill">0 lines flagged</span></p>
+  <div id="huntFb" class="fb"></div>
+</div>
+
+<div class="card" id="s2">
+  <h2>Step 2 - The AI's tests and the tool's output</h2>
+  <div class="how">The developer ran the AI's 6 tests and then the tool on the sample log.</div>
+  <p><button onclick="show('o_tests','tests_before')">Show: python -m pytest -v</button><button onclick="show('o_tool','tool_before')">Show: python triage_tool.py</button></p>
+  <pre id="o_tests" class="mono term" style="display:none"></pre><pre id="o_tool" class="mono term" style="display:none"></pre>
+  <p><b>Question:</b> Based only on these results, would you approve this tool for the SOC?</p>
+  <p><button class="ghost" id="q2y" onclick="q2('y')">Yes - tests pass, output looks fine</button><button class="ghost" id="q2n" onclick="q2('n')">Not yet - I need more evidence</button></p>
+  <div id="f2" class="fb"></div>
+</div>
+
+<div class="card" id="s3">
+  <h2>Step 3 - Prove the bugs (safe demo)</h2>
+  <div class="how">The developer ran <code>demo_attacks.py</code>. It is harmless: fake data, an in-memory database, and the injection demo only runs <code>echo</code> in a temporary folder.</div>
+  <p><button onclick="show('o_demo','demo_before')">Show: python demo_attacks.py</button></p>
+  <pre id="o_demo" class="mono term" style="display:none"></pre>
+  <p><b>Question:</b> The log has 12 failed logins from 203.0.113.50. Why does the tool's report not show this IP at all?</p>
+  <div id="q3opts"></div>
+  <div id="f3" class="fb"></div>
+</div>
+
+<div class="card" id="s4">
+  <h2>Step 4 - Security review: scanner, then AI</h2>
+  <div class="how"><b>4a.</b> The developer ran the Bandit security scanner. Look at which lines it flagged.</div>
+  <p><button onclick="show('o_bandit','bandit_before',true)">Show: python -m bandit triage_tool.py</button></p>
+  <pre id="o_bandit" class="mono term" style="display:none"></pre>
+  <p><b>Question:</b> Tick every SPEC rule Bandit found a problem for:</p>
+  <p id="q4box"></p>
+  <p><button onclick="q4()">Check</button></p>
+  <div id="f4" class="fb"></div>
+  <div class="how" style="margin-top:16px"><b>4b. AI security review (optional).</b> The box below is prompt P1 (the file <code>lab2/prompts/p1_security_review.txt</code>) with the SPEC and the code already filled in. It contains only fake data. Send it the same way as in Lab 1: on your Module 0 VM run <code>ollama run llama3.1:8b &lt; prompts/p1_security_review.txt</code> from the lab2 folder, <b>or</b> press <b>Select all</b>, copy (Ctrl+C) and paste it into your approved chat tool. Record the findings in Worksheet W4 as TRUE, FALSE POSITIVE or UNSURE.</div>
+  <textarea id="p1" readonly class="mono" style="width:100%;height:160px;border-radius:8px;border:1px solid var(--line);padding:8px"></textarea>
+  <p><button class="ghost" onclick="selP1()">Select all</button> <span id="copied" class="pill" style="display:none">Selected - now press Ctrl+C</span></p>
+</div>
+
+<div class="card" id="s5">
+  <h2>Step 5 - Test the tests (meta-test)</h2>
+  <div class="analogy"><b>Think of it like...</b> The smoke-detector TEST button. A detector that never beeps might mean "no fire" - or a dead battery.</div>
+  <div class="how"><code>meta_test.py</code> runs the AI's tests against correct code (they must pass) and against 7 copies of the code, each with one planted bug (each should make a test fail).</div>
+  <p><button onclick="show('o_meta','meta_before')">Show: python meta_test.py</button></p>
+  <pre id="o_meta" class="mono term" style="display:none"></pre>
+  <p><b>Question:</b> What does "SCORE: caught 0 of 7" tell you?</p>
+  <div id="q5opts"></div>
+  <div id="f5" class="fb"></div>
+</div>
+
+<div class="card" id="s6">
+  <h2>Step 6 - After the developer fixed it with AI</h2>
+  <div class="how">The developer fixed each rule with AI, one at a time, and wrote stronger tests. Check the evidence.</div>
+  <p>
+   <button onclick="show('o_t2','tests_after')">Tests</button>
+   <button onclick="show('o_m2','meta_after')">Meta-test</button>
+   <button onclick="show('o_c2','check_after')">SPEC check</button>
+   <button onclick="show('o_b2','bandit_after')">Bandit</button>
+   <button onclick="show('o_tool2','tool_after')">Tool output</button>
+   <button onclick="show('o_d2','demo_after')">Demo</button>
+  </p>
+  <pre id="o_t2" class="mono term" style="display:none"></pre><pre id="o_m2" class="mono term" style="display:none"></pre><pre id="o_c2" class="mono term" style="display:none"></pre>
+  <pre id="o_b2" class="mono term" style="display:none"></pre><pre id="o_tool2" class="mono term" style="display:none"></pre><pre id="o_d2" class="mono term" style="display:none"></pre>
+  <p><b>Question:</b> All checks are green now. Which statement is true?</p>
+  <div id="q6opts"></div>
+  <div id="f6" class="fb"></div>
+</div>
+
+<div class="card" id="done" style="display:none">
+  <h2>Reviewer track complete</h2>
+  <p>Now open <code>sim5_lab2_trust_but_verify.html</code>, do Part A (catch matrix), and fill in Worksheet W6 and W7.</p>
+  <table>
+   <tr><th>Check</th><th>Planted issues it caught</th></tr>
+   <tr><td>The AI's own tests</td><td class="bad">0 of 7</td></tr>
+   <tr><td>Bandit scanner</td><td class="warn">3 of 7 (R4, R6, R7)</td></tr>
+   <tr><td>Spec-based tests (proven by meta-test)</td><td class="ok">7 of 7</td></tr>
+   <tr><td>Your review by eye (Step 1)</td><td id="eyeScore">-</td></tr>
+  </table>
+</div>
+
+</main>
+<footer>AI Bootcamp - Module 2: AI inside the engineering and security workflow. Works offline; all data is fictional.</footer>
+<script>
+
+const D = {"code": ["\"\"\"", "triage_tool.py  -  SSH brute-force triage helper for the SOC team.", "", "This file was GENERATED BY AN AI ASSISTANT from the prompt:", "  \"Write a Python tool that reads an SSH auth log, counts failed logins per IP,", "   flags brute force, looks up the user in our asset DB, checks IP reputation,", "   and adds bad IPs to a blocklist file.\"", "", "It runs. Its tests pass. Your job in Lab 2 is to find out whether it is", "actually correct and safe.  DO NOT use this code in production.", "\"\"\"", "", "import re", "import sqlite3", "import subprocess", "", "# Token for the threat-intel service (FAKE value - lab only)", "THREAT_INTEL_TOKEN = \"ti_live_9f8e7d6c5b4a3210fedcba9876543210\"", "", "INTEL_URL = \"https://intel.example.internal/v1/ip/\"", "", "", "def parse_failed_logins(lines):", "    \"\"\"Return a dict {ip: number_of_failed_logins} from SSH auth log lines.\"\"\"", "    pattern = re.compile(r\"Failed password for (\\w+) from (\\S+)\")", "    counts = {}", "    for line in lines:", "        match = pattern.search(line)", "        if match:", "            ip = match.group(2)", "            counts[ip] = counts.get(ip, 0) + 1", "    return counts", "", "", "def is_brute_force(count, threshold=5):", "    \"\"\"Return True if the number of failures counts as brute force.\"\"\"", "    return count > threshold", "", "", "def is_valid_ip(ip):", "    \"\"\"Return True if ip looks like an IPv4 address.\"\"\"", "    return re.match(r\"^\\d+\\.\\d+\\.\\d+\\.\\d+$\", ip) is not None", "", "", "def lookup_user(conn, username):", "    \"\"\"Return (username, department) from the asset DB, or None.\"\"\"", "    cursor = conn.cursor()", "    query = f\"SELECT username, department FROM users WHERE username = '{username}'\"", "    cursor.execute(query)", "    return cursor.fetchone()", "", "", "def check_reputation(ip, feed):", "    \"\"\"Return the reputation verdict for ip from the intel feed dict.\"\"\"", "    try:", "        return feed[ip]", "    except Exception:", "        return \"clean\"", "", "", "def build_intel_request(ip):", "    \"\"\"Return the URL and headers used to query the threat-intel service.\"\"\"", "    return {", "        \"url\": INTEL_URL + ip,", "        \"headers\": {\"Authorization\": \"Bearer \" + THREAT_INTEL_TOKEN},", "    }", "", "", "def block_ip(ip, blocklist_path=\"blocklist.txt\"):", "    \"\"\"Append 'BLOCK <ip>' to the blocklist file.\"\"\"", "    subprocess.run(f\"echo BLOCK {ip} >> {blocklist_path}\", shell=True)", "", "", "if __name__ == \"__main__\":", "    with open(\"sample_auth.log\", encoding=\"utf-8\") as f:", "        results = parse_failed_logins(f)", "    for ip, count in sorted(results.items(), key=lambda x: -x[1]):", "        flag = \"BRUTE FORCE\" if is_brute_force(count) else \"ok\"", "        print(f\"{ip:<16} {count:>3} failures   {flag}\")"], "issues": [["R1", [24], "The pattern only matches \"Failed password for &lt;user&gt;\". Lines with \"invalid user\" never match, so attacks on non-existent accounts are invisible."], ["R2", [36], "Uses &gt; instead of &gt;=. Exactly 5 failures is not flagged, but the SPEC says 5 or more."], ["R3", [41], "Accepts any digits, so 999.1.1.1 counts as a valid IP. block_ip depends on this check."], ["R4", [47, 48], "SQL is built by pasting the username into the query text. Input like x' OR '1'='1 changes the query (SQL injection)."], ["R5", [57, 56], "Fails open: any IP not in the feed (or a broken feed) is reported as \"clean\". The SPEC says \"unknown\"."], ["R6", [17], "A secret token is written in the code. Anyone with the code (or its git history) has it."], ["R7", [70], "Builds a shell command from the IP text with shell=True. \"1.2.3.4 &amp;&amp; &lt;command&gt;\" runs the attacker's command."]], "out": {"tests_before": "test_triage_tool.py::test_parse_counts_failed_logins PASSED              [ 16%]\ntest_triage_tool.py::test_brute_force_detected PASSED                    [ 33%]\ntest_triage_tool.py::test_no_brute_force_for_few_failures PASSED         [ 50%]\ntest_triage_tool.py::test_valid_ip PASSED                                [ 66%]\ntest_triage_tool.py::test_lookup_existing_user PASSED                    [ 83%]\ntest_triage_tool.py::test_reputation_known_bad_ip PASSED                 [100%]\n============================== 6 passed in 0.01s ===============================", "tool_before": "198.51.100.77      8 failures   BRUTE FORCE\n198.51.100.23      5 failures   ok\n192.0.2.10         2 failures   ok", "demo_before": "\nDEMO 1 - The biggest attacker is invisible (R1)\n  Lines in the log from 203.0.113.50 : 12\n  Failures the tool counted for it    : 0\n\nDEMO 2 - Exactly 5 failures (R2)\n  is_brute_force(5) returned          : False   (SPEC says True)\n\nDEMO 3 - Impossible IP accepted (R3)\n  is_valid_ip('999.1.1.1') returned   : True   (SPEC says False)\n\nDEMO 4 - SQL injection (R4)\n  lookup_user(conn, \"x' OR '1'='1\")  : ('mreyes', 'Finance')   (SPEC says None)\n\nDEMO 5 - Fail open (R5)\n  check_reputation('198.51.100.23', {}) : 'clean'   (SPEC says 'unknown')\n\nDEMO 6 - Command injection (R7)  [harmless: only runs 'echo']\nBLOCK 1.2.3.4\n  block_ip accepted the input. If you see INJECTED-COMMAND-RAN\n  above or below, an attacker-controlled command was executed.\n  blocklist.txt now contains: INJECTED-COMMAND-RAN\n\nCompare every result with SPEC.md. On the original AI code, all 6 demos\nbreak the SPEC while all 6 AI-written tests pass. That is the lesson.", "meta_before": "\nMETA-TEST of: test_triage_tool.py\n============================================================\nSTEP 1  Your tests on CORRECT code ........ PASS (good)\n\nSTEP 2  Your tests on 7 BROKEN versions:\n  R1  'invalid user' attacks not counted     MISSED  <-- this bug would reach production\n  R2  exactly 5 failures not flagged         MISSED  <-- this bug would reach production\n  R3  999.1.1.1 accepted as an IP            MISSED  <-- this bug would reach production\n  R4  SQL injection in lookup_user           MISSED  <-- this bug would reach production\n  R5  unknown IP reported as 'clean'         MISSED  <-- this bug would reach production\n  R6  hardcoded token fallback               MISSED  <-- this bug would reach production\n  R7  block_ip accepts any input             MISSED  <-- this bug would reach production\n============================================================\nSCORE: your tests caught 0 of 7 planted bugs.\nAdd a test for each MISSED rule (see SPEC.md), then run again.", "tests_after": "27 passed in 0.03s", "tool_after": "203.0.113.50      12 failures   BRUTE FORCE\n198.51.100.77      8 failures   BRUTE FORCE\n198.51.100.23      5 failures   BRUTE FORCE\n192.0.2.10         2 failures   ok", "demo_after": "\nDEMO 1 - The biggest attacker is invisible (R1)\n  Lines in the log from 203.0.113.50 : 12\n  Failures the tool counted for it    : 12\n\nDEMO 2 - Exactly 5 failures (R2)\n  is_brute_force(5) returned          : True   (SPEC says True)\n\nDEMO 3 - Impossible IP accepted (R3)\n  is_valid_ip('999.1.1.1') returned   : False   (SPEC says False)\n\nDEMO 4 - SQL injection (R4)\n  lookup_user(conn, \"x' OR '1'='1\")  : None   (SPEC says None)\n\nDEMO 5 - Fail open (R5)\n  check_reputation('198.51.100.23', {}) : 'unknown'   (SPEC says 'unknown')\n\nDEMO 6 - Command injection (R7)  [harmless: only runs 'echo']\n  Rejected (good): Refusing to block invalid IP: '1.2.3.4 && echo INJECTED-COMMAND-RAN'\n\nCompare every result with SPEC.md. On the original AI code, all 6 demos\nbreak the SPEC while all 6 AI-written tests pass. That is the lesson.", "meta_after": "\nMETA-TEST of: test_triage_tool.py\n============================================================\nSTEP 1  Your tests on CORRECT code ........ PASS (good)\n\nSTEP 2  Your tests on 7 BROKEN versions:\n  R1  'invalid user' attacks not counted     CAUGHT\n  R2  exactly 5 failures not flagged         CAUGHT\n  R3  999.1.1.1 accepted as an IP            CAUGHT\n  R4  SQL injection in lookup_user           CAUGHT\n  R5  unknown IP reported as 'clean'         CAUGHT\n  R6  hardcoded token fallback               CAUGHT\n  R7  block_ip accepts any input             CAUGHT\n============================================================\nSCORE: your tests caught 7 of 7 planted bugs.\nExcellent. Remember: this measures your tests, not your code.", "check_after": "\nCHECK OF YOUR FIX (triage_tool.py vs SPEC.md)\n============================================================\n  R1  count 'invalid user' attacks             PASS\n  R2  5 or more failures = brute force         PASS\n  R3  strict IPv4 validation                   PASS\n  R4  parameterized SQL (no injection)         PASS\n  R5  fail closed ('unknown', not 'clean')     PASS\n  R6  token from environment, not code         PASS\n  R7  block_ip validates, no shell             PASS\n============================================================\nRESULT: 7 of 7 rules satisfied.", "bandit_after": "No issues identified.\nTotal lines of code: 63\nTotal lines skipped (#nosec): 0"}, "bandit_before": ">> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.\nSeverity: Low   Confidence: High\nLocation: ./triage_tool.py:15:0\n>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'ti_live_9f8e7d6c5b4a3210fedcba9876543210'\nSeverity: Low   Confidence: Medium\nLocation: ./triage_tool.py:18:21\n>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.\nSeverity: Medium   Confidence: Low\nLocation: ./triage_tool.py:48:12\n>> Issue: [B602:subprocess_popen_with_shell_equals_true] subprocess call with shell=True identified, security issue.\nSeverity: High   Confidence: High\nLocation: ./triage_tool.py:71:4\n\nTotal issues (by severity):  Low: 2   Medium: 1   High: 1"};
+const done = new Set();
+function mark(n){ done.add(n); document.getElementById('prog').textContent='Steps completed: '+done.size+' of 6'; if(done.size===6) document.getElementById('done').style.display='block'; }
+function show(id,key,bandit){ const e=document.getElementById(id); e.textContent = bandit ? D.bandit_before : D.out[key]; e.style.display = e.style.display==='none'?'block':'none'; }
+
+// Step 1
+const sel=new Set(); let huntDone=false;
+const bad={}; D.issues.forEach((it,k)=>it[1].forEach(l=>bad[l]=k));
+function renderCode(){
+  const box=document.getElementById('code'); box.innerHTML='';
+  D.code.forEach((t,i)=>{ const d=document.createElement('div');
+    d.style.padding='1px 12px'; d.style.cursor='pointer'; d.style.minHeight='1.4em';
+    let bg='transparent';
+    if(sel.has(i)) bg='#7A5A12';
+    if(huntDone){ if(i in bad) bg = D.issues[bad[i]][1].some(l=>sel.has(l)) ? '#1E6B45' : '#8A2C2C'; else if(sel.has(i)) bg='#6B5A2A'; }
+    d.style.background=bg; d.textContent=String(i+1).padStart(3,' ')+'  '+t;
+    d.onclick=()=>{ if(huntDone) return; sel.has(i)?sel.delete(i):sel.add(i); renderCode(); };
+    box.appendChild(d); });
+  document.getElementById('nsel').textContent=sel.size+' lines flagged';
+}
+function submitHunt(){
+  huntDone=true; renderCode();
+  let found=0; const rows=D.issues.map(it=>{ const hit=it[1].some(l=>sel.has(l)); if(hit) found++;
+    return `<li>${hit?'<span class="ok">Found</span>':'<span class="bad">Missed</span>'} <b>${it[0]}</b> (line ${it[1][0]+1}): ${it[2]}</li>`; }).join('');
+  const fp=[...sel].filter(l=>!(l in bad)).map(l=>l+1);
+  const f=document.getElementById('huntFb');
+  f.innerHTML=`<p class="score">You found ${found} of 7.</p><ul>${rows}</ul>`+(fp.length?`<p class="warn">Lines ${fp.join(', ')} are fine.</p>`:'')+
+   '<p>Most reviewers find the security patterns (R4, R6, R7) and miss some behaviour bugs (R1, R2, R5). That is normal - and why we add tests.</p>';
+  f.className='fb show '+(found>=6?'good':(found>=4?'mid':'no'));
+  document.getElementById('eyeScore').textContent=found+' of 7';
+  mark(1);
+}
+renderCode();
+
+// generic single-choice
+function mcq(boxId, fbId, step, opts, correct, why){
+  const box=document.getElementById(boxId);
+  box.innerHTML=opts.map((o,i)=>`<p><button class="ghost" id="${boxId}${i}" onclick="pick('${boxId}','${fbId}',${step},${i})">${o}</button></p>`).join('');
+  box.dataset.correct=correct; box.dataset.n=opts.length; WHY[boxId]=why;
+}
+const WHY={};
+function pick(boxId,fbId,step,i){
+  const box=document.getElementById(boxId); if(box.dataset.done) return; box.dataset.done=1;
+  for(let k=0;k<+box.dataset.n;k++) document.getElementById(boxId+k).disabled=true;
+  document.getElementById(boxId+i).classList.add('chosen');
+  const ok=(i===+box.dataset.correct), f=document.getElementById(fbId);
+  f.innerHTML=(ok?'<span class="ok">Correct.</span> ':'<span class="bad">Not quite.</span> ')+WHY[boxId]; f.className='fb show '+(ok?'good':'no'); mark(step);
+}
+function q2(c){
+  if(document.getElementById('q2y').disabled) return;
+  document.getElementById('q2y').disabled=true; document.getElementById('q2n').disabled=true;
+  document.getElementById(c==='y'?'q2y':'q2n').classList.add('chosen');
+  const f=document.getElementById('f2');
+  f.innerHTML=(c==='n'?'<span class="ok">Good instinct.</span> ':'<span class="bad">Most people say yes here - that is the trap.</span> ')+
+   'Green tests only prove what they test, and the output only shows what the code noticed. Write your answer in Worksheet W2, then continue.';
+  f.className='fb show '+(c==='n'?'good':'mid'); mark(2);
+}
+mcq('q3opts','f3',3,[
+ "203.0.113.50 is on an allow-list",
+ "Its lines say \"Failed password for invalid user ...\", and the code's pattern does not match that wording",
+ "The log file is too large for the tool",
+ "The IP is not a valid IPv4 address"],1,
+ "The attacker tried 12 usernames that do not exist. sshd writes those as \"invalid user\" lines, which the AI's pattern ignores (rule R1). The most important attacker was invisible, while every test stayed green.");
+
+// Step 4
+document.getElementById('q4box').innerHTML=['R1','R2','R3','R4','R5','R6','R7'].map(r=>`<label style="margin-right:14px;white-space:nowrap"><input type="checkbox" value="${r}"> ${r}</label>`).join('');
+function q4(){
+  if(document.getElementById('f4').dataset.done) return; document.getElementById('f4').dataset.done=1;
+  const picked=[...document.querySelectorAll('#q4box input:checked')].map(x=>x.value).sort().join(',');
+  const ok=picked==='R4,R6,R7', f=document.getElementById('f4');
+  f.innerHTML=(ok?'<span class="ok">Correct: R4, R6 and R7.</span> ':`<span class="bad">The answer is R4, R6 and R7</span> (you ticked: ${picked||'none'}). `)+
+   'B608 = SQL string building (R4), B105 = hardcoded token (R6), B602 = shell=True (R7). B404 only notes that subprocess is imported. Bandit finds dangerous <b>patterns</b>; it cannot know your SPEC, so R1, R2, R3 and R5 are invisible to it. Record this in Worksheet W3.';
+  f.className='fb show '+(ok?'good':'no'); mark(4);
+}
+document.getElementById('p1').value = "FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.\n\nYou are a senior application security reviewer for a SOC team.\nReview the Python code below against the SPEC below.\nFor each problem give: function name, SPEC rule (R1-R7) or \"other\",\nwhat is wrong, why it matters for a SOC tool, severity (High/Medium/Low).\nDo NOT rewrite the code. If you are not sure about something, say \"unsure\".\n\n<spec>\nR1 - parse_failed_logins(lines): Return {ip: count}. Count every line with Failed password for <user> from <ip> including Failed password for invalid user <user> from <ip>. Ignore all other lines.\nR2 - is_brute_force(count, threshold=5): Return True when count is 5 or more (count >= threshold).\nR3 - is_valid_ip(ip): Return True only for a real IPv4 address (four numbers, each 0\u2013255). Return False for anything else (e.g. 999.1.1.1, 1.2.3, abc, 1.2.3.4; rm -rf /, and IPv6 addresses such as ::1). Never raise.\nR4 - lookup_user(conn, username): Return (username, department) or None. Must use a parameterized SQL query. Input like x' OR '1'='1 must return None.\nR5 - check_reputation(ip, feed): Return feed[ip] if the IP is in the feed. If the IP is not in the feed, or the feed is None, return \"unknown\". Never return \"clean\" by default (fail closed).\nR6 - build_intel_request(ip): Read the token from the environment variable THREAT_INTEL_TOKEN each time the function is called (not once when the file is imported). If it is not set, raise RuntimeError. No token may be written in the source code.\nR7 - block_ip(ip, blocklist_path=\"blocklist.txt\"): If ip is not valid (R3), raise ValueError and write nothing. Otherwise append the line BLOCK <ip> to the file. Must not use a shell.\n</spec>\n\n<code>\n\"\"\"\ntriage_tool.py  -  SSH brute-force triage helper for the SOC team.\n\nThis file was GENERATED BY AN AI ASSISTANT from the prompt:\n  \"Write a Python tool that reads an SSH auth log, counts failed logins per IP,\n   flags brute force, looks up the user in our asset DB, checks IP reputation,\n   and adds bad IPs to a blocklist file.\"\n\nIt runs. Its tests pass. Your job in Lab 2 is to find out whether it is\nactually correct and safe.  DO NOT use this code in production.\n\"\"\"\n\nimport re\nimport sqlite3\nimport subprocess\n\n# Token for the threat-intel service (FAKE value - lab only)\nTHREAT_INTEL_TOKEN = \"ti_live_9f8e7d6c5b4a3210fedcba9876543210\"\n\nINTEL_URL = \"https://intel.example.internal/v1/ip/\"\n\n\ndef parse_failed_logins(lines):\n    \"\"\"Return a dict {ip: number_of_failed_logins} from SSH auth log lines.\"\"\"\n    pattern = re.compile(r\"Failed password for (\\w+) from (\\S+)\")\n    counts = {}\n    for line in lines:\n        match = pattern.search(line)\n        if match:\n            ip = match.group(2)\n            counts[ip] = counts.get(ip, 0) + 1\n    return counts\n\n\ndef is_brute_force(count, threshold=5):\n    \"\"\"Return True if the number of failures counts as brute force.\"\"\"\n    return count > threshold\n\n\ndef is_valid_ip(ip):\n    \"\"\"Return True if ip looks like an IPv4 address.\"\"\"\n    return re.match(r\"^\\d+\\.\\d+\\.\\d+\\.\\d+$\", ip) is not None\n\n\ndef lookup_user(conn, username):\n    \"\"\"Return (username, department) from the asset DB, or None.\"\"\"\n    cursor = conn.cursor()\n    query = f\"SELECT username, department FROM users WHERE username = '{username}'\"\n    cursor.execute(query)\n    return cursor.fetchone()\n\n\ndef check_reputation(ip, feed):\n    \"\"\"Return the reputation verdict for ip from the intel feed dict.\"\"\"\n    try:\n        return feed[ip]\n    except Exception:\n        return \"clean\"\n\n\ndef build_intel_request(ip):\n    \"\"\"Return the URL and headers used to query the threat-intel service.\"\"\"\n    return {\n        \"url\": INTEL_URL + ip,\n        \"headers\": {\"Authorization\": \"Bearer \" + THREAT_INTEL_TOKEN},\n    }\n\n\ndef block_ip(ip, blocklist_path=\"blocklist.txt\"):\n    \"\"\"Append 'BLOCK <ip>' to the blocklist file.\"\"\"\n    subprocess.run(f\"echo BLOCK {ip} >> {blocklist_path}\", shell=True)\n\n\nif __name__ == \"__main__\":\n    with open(\"sample_auth.log\", encoding=\"utf-8\") as f:\n        results = parse_failed_logins(f)\n    for ip, count in sorted(results.items(), key=lambda x: -x[1]):\n        flag = \"BRUTE FORCE\" if is_brute_force(count) else \"ok\"\n        print(f\"{ip:<16} {count:>3} failures   {flag}\")\n</code>\n";
+function selP1(){ const t=document.getElementById('p1'); t.focus(); t.select();
+  try{ if(navigator.clipboard) navigator.clipboard.writeText(t.value).catch(()=>{}); }catch(e){}
+  document.getElementById('copied').style.display='inline-block'; }
+
+mcq('q5opts','f5',5,[
+ "The code has no bugs",
+ "The tests pass on correct code but would also pass on all 7 broken versions - they prove almost nothing",
+ "The meta-test tool is broken",
+ "7 tests failed"],1,
+ "A test that cannot fail on a bug is decoration. The AI's tests check only easy, normal cases - no boundaries (exactly 5), no malicious input, no missing data.");
+mcq('q6opts','f6',6,[
+ "The tool is now proven safe for any future change",
+ "The tool now meets R1-R7, and the tests are proven to catch those 7 bugs; new rules or changes need new tests and a new review",
+ "We no longer need human review because Bandit is clean",
+ "Meta-testing proves the code is correct"],1,
+ "Green checks are evidence for exactly what they check. That is calibrated trust: strong evidence for R1-R7, and a review whenever something changes.");
+
+</script>
+</body></html>

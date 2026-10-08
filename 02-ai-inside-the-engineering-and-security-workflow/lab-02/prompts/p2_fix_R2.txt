@@ -1,0 +1,17 @@
+FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.
+
+Fix ONLY SPEC rule R2 in the function below.
+Rules: keep the function name and parameters exactly the same,
+use only the Python standard library, do not use a shell,
+do not hardcode secrets. Show the full corrected function,
+then explain the change in 2 sentences.
+
+<rule>
+R2 - is_brute_force(count, threshold=5): Return True when count is 5 or more (count >= threshold).
+</rule>
+
+<function>
+def is_brute_force(count, threshold=5):
+    """Return True if the number of failures counts as brute force."""
+    return count > threshold
+</function>

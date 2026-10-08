@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulation 5 - Trust but Verify</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:980px;margin:0 auto}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px}
+header p{margin:0;color:#D5E3F0}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;background:var(--navy);color:#fff;outline:3px solid var(--amber)}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;background:var(--teal-l);color:var(--teal);font-weight:600}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{background:#EEF2F6}
+footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:600px){header h1{font-size:21px}.card{padding:14px}}
+</style></head>
+<body>
+<header><div class="wrap"><small>Section 5 - Lab 2 companion</small><h1>Simulation 5 - Trust but Verify</h1><p>See what each safety layer catches and misses, find your right level of trust, and track your lab progress.</p></div></header>
+<main>
+
+<div class="card">
+  <h2>Part A - Predict the catch matrix</h2>
+  <div class="analogy"><b>Think of it like...</b> Swiss cheese slices. Every safety layer has holes. One slice lets things through; stack several slices and the holes rarely line up.</div>
+  <div class="how"><b>How to play:</b> Before (or after) doing Lab 2, predict which layer catches each planted bug. Click a cell to cycle <b>?</b> &rarr; <b>Catches</b> &rarr; <b>Misses</b>. Then press <b>Reveal real lab results</b>. The real results were measured by running the lab tools.</div>
+  <div style="overflow-x:auto"><table id="mx"></table></div>
+  <p><button onclick="reveal()">Reveal real lab results</button><button class="ghost" onclick="resetM()">Reset</button></p>
+  <div id="mxFb" class="fb"></div>
+</div>
+
+<div class="card">
+  <h2>Part B - Calibrate your trust</h2>
+  <div class="analogy"><b>Think of it like...</b> A new colleague's work. Day one you check everything; after months of good work on simple tasks you spot-check; for anything that touches production you always double-check. Trust is earned per task type, not given once.</div>
+  <div class="how"><b>How to play:</b> Move the slider to set how much you would trust AI-written code with <b>no</b> review. Read what that level means.</div>
+  <input type="range" id="tr" min="0" max="4" value="2" style="width:100%" oninput="trust()">
+  <div id="trOut" class="fb show mid"></div>
+</div>
+
+<div class="card">
+  <h2>Part C - Lab 2 progress tracker</h2>
+  <div class="how">Tick each part as you finish it in the lab guide. (Resets when you close the page.)</div>
+  <div id="prog"></div>
+  <p class="score" id="progScore"></p>
+</div>
+
+</main>
+<footer>AI Bootcamp - Module 2: AI inside the engineering and security workflow. Works offline; all data is fictional.</footer>
+<script>
+
+const BUGS=["R1 'invalid user' attacks not counted","R2 exactly 5 failures not flagged","R3 999.1.1.1 accepted as IP","R4 SQL injection","R5 fail open ('clean' by default)","R6 hardcoded token","R7 command injection in block_ip"];
+const LAYERS=["AI's own tests","Bandit scanner","Your spec-based tests (meta-tested)"];
+// verified by running the lab: weak tests 0/7, bandit flags R4 (B608), R6 (B105), R7 (B602), strong tests 7/7
+const TRUTH=[[0,0,1],[0,0,1],[0,0,1],[0,1,1],[0,0,1],[0,1,1],[0,1,1]];
+const st=BUGS.map(()=>LAYERS.map(()=>0)); let shown=false;
+function draw(){
+ let h='<tr><th>Planted bug</th>'+LAYERS.map(l=>`<th>${l}</th>`).join('')+'</tr>';
+ BUGS.forEach((b,i)=>{ h+=`<tr><td>${b}</td>`+LAYERS.map((l,j)=>{
+   const v=st[i][j]; let txt=['?','Catches','Misses'][v], bg='#fff';
+   if(shown){ const t=TRUTH[i][j]; const right=(v===1&&t===1)||(v===2&&t===0);
+     txt=(t?'Catches':'Misses')+(v===0?'':(right?' - you: right':' - you: wrong')); bg=t?'var(--green-l)':'var(--red-l)'; }
+   return `<td style="cursor:pointer;background:${bg};text-align:center" onclick="cyc(${i},${j})">${txt}</td>`;}).join('')+'</tr>';});
+ document.getElementById('mx').innerHTML=h;
+}
+function cyc(i,j){ if(shown) return; st[i][j]=(st[i][j]+1)%3; draw(); }
+function reveal(){
+ shown=true; draw();
+ let right=0,total=0; st.forEach((r,i)=>r.forEach((v,j)=>{ if(v){total++; if((v===1)===(TRUTH[i][j]===1)) right++;}}));
+ const f=document.getElementById('mxFb');
+ f.innerHTML=`<p class="score">${total?`Your predictions: ${right} of ${total} correct.`:'You made no predictions - study the pattern below.'}</p>
+ <ul><li><b>AI's own tests: 0 of 7.</b> All 6 tests pass on broken code. Passing tests prove only what they test.</li>
+ <li><b>Bandit: 3 of 7.</b> It finds dangerous <i>patterns</i> (SQL string building, hardcoded secrets, shell=True). It cannot know your requirement, so logic bugs (R1, R2, R3, R5) are invisible to it.</li>
+ <li><b>Spec-based tests: 7 of 7</b> - but only because the meta-test proved they fail on each bug.</li>
+ <li><b>Human review</b> against SPEC.md can catch all 7, but people get tired and skip things. That is why we stack layers.</li></ul>`;
+ f.className='fb show good';
+}
+function resetM(){ st.forEach(r=>r.fill(0)); shown=false; draw(); document.getElementById('mxFb').className='fb'; }
+draw();
+
+const TL=[
+ ["0 - Never use it","Blind distrust. You lose real time savings (tests, boilerplate, drafts) and colleagues who use AI well will out-pace you. Not the goal."],
+ ["1 - Use it, check everything","Right for new users and for any code that touches security, production or data."],
+ ["2 - Use it, verify by risk","The target: light check for low-risk output, tests + scan + review for anything that runs, changes or protects something."],
+ ["3 - Spot-check only","Acceptable only for low-risk, easily reversible output you understand fully (e.g. formatting a report)."],
+ ["4 - Ship without review","Blind trust. Lab 2 showed code that passes its own tests can hide an attacker, an injection and a fail-open check. Never for anything that matters."]
+];
+function trust(){ const v=+document.getElementById('tr').value, o=document.getElementById('trOut');
+ o.innerHTML=`<b>${TL[v][0]}</b><br>${TL[v][1]}`; o.className='fb show '+(v===2?'good':(v===1||v===3?'mid':'no')); }
+trust();
+
+const P=["Part 0 - Set up the lab","Part 1 - Hunt: review the code by eye","Part 2 - Run the AI's tests (they pass!)","Part 3 - Prove the bugs with demo_attacks.py","Part 4 - Scan with Bandit + AI security review","Part 5 - Fix with AI, one rule at a time","Part 6 - Meta-test your tests and check your fix","Part 7 - Fill the catch matrix and reflect"];
+const pd=new Set();
+function prog(){ document.getElementById('prog').innerHTML=P.map((p,i)=>`<label style="display:block;padding:6px 0"><input type="checkbox" ${pd.has(i)?'checked':''} onchange="tg(${i})"> ${p}</label>`).join('');
+ document.getElementById('progScore').textContent=`${pd.size} of ${P.length} parts done`+(pd.size===P.length?' - Lab 2 complete!':''); }
+function tg(i){ pd.has(i)?pd.delete(i):pd.add(i); prog(); }
+prog();
+
+</script>
+</body></html>

@@ -1,0 +1,14 @@
+FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.
+
+Write pytest tests for SPEC rule R7 of triage_tool.py.
+Requirements: name every test test_r7_<something>,
+include boundary values and at least one malicious input,
+each test must FAIL if the rule is broken,
+use tmp_path for files and monkeypatch for environment variables,
+no network, no real data. Put any sample log lines directly
+inside the test file. Import block_ip from triage_tool.
+Show only the Python code.
+
+<rule>
+R7 - block_ip(ip, blocklist_path="blocklist.txt"): If ip is not valid (R3), raise ValueError and write nothing. Otherwise append the line BLOCK <ip> to the file. Must not use a shell.
+</rule>

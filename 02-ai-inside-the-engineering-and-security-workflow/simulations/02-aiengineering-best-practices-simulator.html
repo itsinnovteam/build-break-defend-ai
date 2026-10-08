@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulation 1 - Safe & Effective Prompting</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:980px;margin:0 auto}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px}
+header p{margin:0;color:#D5E3F0}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;background:var(--navy);color:#fff;outline:3px solid var(--amber)}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;background:var(--teal-l);color:var(--teal);font-weight:600}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{background:#EEF2F6}
+footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:600px){header h1{font-size:21px}.card{padding:14px}}
+</style></head>
+<body>
+<header><div class="wrap"><small>Section 1 - Best practices for using AI assistants</small><h1>Simulation 1 - Safe & Effective Prompting</h1><p>Practise the two habits that matter most: protect sensitive data, and give the AI a clear, constrained task.</p></div></header>
+<main>
+
+<div class="card">
+  <h2>Part A - Redact code and errors before you paste</h2>
+  <p>Module 1 taught you to redact alerts. Code, configs and error messages hide secrets too - often more of them.</p>
+  <div class="analogy"><b>Think of it like...</b> Sending a sample to an outside lab. You send the blood sample, not your wallet and house keys. The lab needs the evidence, not your identity.</div>
+  <div class="how"><b>How to play:</b> A developer on the SOAR team wants AI help with this error from a failing integration script. Click every item that must <b>not</b> leave the company (there are 6). Click again to undo. Keep the details the AI needs to debug it. Then press <b>Check</b>.</div>
+  <div id="log" class="mono" style="background:#0F1B28;color:#E6EDF3;padding:14px;border-radius:8px;line-height:2.1"></div>
+  <p><button onclick="checkRedact()">Check</button><button class="ghost" onclick="resetRedact()">Reset</button>
+  <span id="redCount" class="pill">0 redacted</span></p>
+  <div id="redFb" class="fb"></div>
+</div>
+
+<div class="card">
+  <h2>Part B - Pick the better prompt</h2>
+  <div class="analogy"><b>Think of it like...</b> Ordering a made-to-measure barong from a tailor. Give your measurements, the fabric and the event date, or you get a standard size that almost fits.</div>
+  <div class="how"><b>How to play:</b> For each situation, choose the prompt that follows best practice for engineering work. The feedback names the R-C-T-F-C part (Role, Context, Task, Format, Constraints, from Module 1) or the practice it shows.</div>
+  <div id="quiz"></div>
+  <p class="score" id="quizScore"></p>
+</div>
+
+</main>
+<footer>AI Bootcamp - Module 2: AI inside the engineering and security workflow. Works offline; all data is fictional.</footer>
+<script>
+
+const TOKENS = [
+ ["Traceback (most recent call last):",0,null,"normal error text the AI needs"],
+ ['File "/opt/soar/integrations/billing_sync.py", line 42, in connect',0,null,"the file and line number the AI needs to find the bug"],
+ ["psycopg2.OperationalError: connection to server at",0,null,"the error type the AI needs"],
+ ['"db-prod-01.corp.example"',1,'"[DB-HOST-1]"',"internal hostname - reveals your naming scheme and the production database"],
+ ["(10.20.4.17),",1,"([INTERNAL-IP-1]),","internal network address"],
+ ["port 5432 failed: password authentication failed for user",0,null,"the exact error message - the most useful clue"],
+ ['"svc_billing"',1,'"[SVC-ACCT-1]"',"service account name - an attacker's next target"],
+ ["| config:",0,null,"a label"],
+ ["DB_URL=postgresql://svc_billing:Spr1ng-2026!@db-prod-01:5432/billing",1,"DB_URL=[CONNECTION-STRING-REMOVED]","a connection string with a live password - the most serious leak"],
+ ["| request header:",0,null,"a label"],
+ ["Authorization: Bearer tok_TRAINING_9f8e7d6c5b4a",1,"Authorization: Bearer [TOKEN-REMOVED]","an API token"],
+ ["| failing record:",0,null,"a label"],
+ ["ana.cruz@example.com",1,"[CUSTOMER-EMAIL-1]","customer personal data"],
+ ["| Question: why does the connection fail since the password rotation last night?",0,null,"the question and the timing clue (password rotation) are the evidence"]
+];
+const red = new Set();
+function renderLog(){
+  const box = document.getElementById('log'); box.innerHTML='';
+  TOKENS.forEach((t,i)=>{
+    const s=document.createElement('span');
+    s.textContent = red.has(i) ? (t[2]||'[REDACTED]') : t[0];
+    s.style.cursor='pointer'; s.style.padding='2px 4px'; s.style.borderRadius='4px';
+    if(red.has(i)){s.style.background='#E8A33D';s.style.color='#111';}
+    s.onclick=()=>{red.has(i)?red.delete(i):red.add(i);renderLog();};
+    box.appendChild(s); box.appendChild(document.createTextNode(' '));
+  });
+  document.getElementById('redCount').textContent = red.size+' redacted';
+}
+function checkRedact(){
+  const need=[],missed=[],over=[];
+  TOKENS.forEach((t,i)=>{ if(t[1]){need.push(i); if(!red.has(i)) missed.push(t);} else if(red.has(i)) over.push(t);});
+  const found = need.length-missed.length;
+  const fb=document.getElementById('redFb');
+  let h=`<p class="score">You protected ${found} of ${need.length} sensitive items.</p>`;
+  if(missed.length){h+='<p class="bad">Still exposed:</p><ul>'+missed.map(t=>`<li><b>${t[0]}</b> - ${t[3]}</li>`).join('')+'</ul>';}
+  if(over.length){h+='<p class="warn">Over-redacted (the AI needs these to help):</p><ul>'+over.map(t=>`<li><b>${t[0]}</b> - ${t[3]||'normal context, safe to share'}</li>`).join('')+'</ul>';}
+  if(!missed.length && !over.length){h+='<p class="ok">Perfect. Secrets and identities are gone; the evidence (the error, the file and line, and the password-rotation clue) is kept.</p>';}
+  h+='<p><b>Rule (Module 1, applied to code):</b> remove secrets, identities and internal names; keep the technical evidence. Use placeholders so you can map the answer back. Never paste .env files or whole config files. Even after redaction, use only an approved AI tool, or your local Module 0 model.</p>';
+  fb.innerHTML=h; fb.className='fb show '+(missed.length?'no':(over.length?'mid':'good'));
+}
+function resetRedact(){red.clear();renderLog();document.getElementById('redFb').className='fb';}
+renderLog();
+
+const Q = [
+ {s:"An analyst needs to understand a suspicious PowerShell command found on a finance laptop.",
+  a:"what is this? powershell -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBi...",
+  b:"You are helping a SOC analyst. Explain step by step what this PowerShell command does. List any network or file actions. Rate the risk Low/Medium/High. If you are not sure, say 'unsure'. Command: powershell -enc SQBFAFgAIAAoAE4AZQB3AC0ATwBi...",
+  ok:"b", why:"This is <b>R-C-T-F-C</b> from Module 1: Role (helping a SOC analyst), Context (the command), Task (explain step by step), Format (actions + risk rating) and Constraints (say 'unsure', do not run anything). The 'unsure' constraint reduces confident guessing."},
+ {s:"A sysadmin wants a script that cleans up old application logs.",
+  a:"Write a Python 3.10 script, standard library only. Delete files older than 30 days ONLY inside D:\\logs\\app. Default to dry-run mode that prints what it would delete. Never follow symbolic links.",
+  b:"Write a script to delete old logs.",
+  ok:"a", why:"For code, <b>Constraints</b> is the R-C-T-F-C part that matters most: version, libraries, exact folder, age, plus <b>safety rails</b> (dry-run, no symlinks). A vague prompt lets the AI guess - and guesses delete the wrong files."},
+ {s:"A developer needs code to remove duplicate customer records.",
+  a:"Here is our customer export (2,000 rows with names, emails and phone numbers). Remove the duplicates.",
+  b:"Here are 5 fake rows with the same columns as our customer table. Write Python code that removes duplicates by email, case-insensitive. I will run it locally on the real data.",
+  ok:"b", why:"Best practice: <b>bring the AI to the problem, not the data</b>. Use synthetic samples with the same shape, get the code, run it locally. Real personal data never leaves."},
+ {s:"A network engineer wants a second opinion on a new firewall rule.",
+  a:"Here is the rule and the requirement (only the web tier may reach the DB on 5432). List what could go wrong, what the rule allows that the requirement does not, and a test that would prove it works.",
+  b:"Is this firewall rule safe? Answer yes or no.",
+  ok:"a", why:"Best practice: <b>ask for reasoning and a way to verify</b>, not a yes/no verdict. 'Yes' from an AI is not evidence; a test you can run is."},
+ {s:"You have been chatting with the AI for 2 hours about many different tickets.",
+  a:"Keep going in the same chat - it remembers everything.",
+  b:"Start a fresh chat for the new ticket and paste a short summary of only what is relevant.",
+  ok:"b", why:"Best practice: <b>one task, one conversation</b>. Long chats mix contexts and early instructions fade, so the AI may apply ticket A's facts to ticket B."}
+];
+const answered={};
+function renderQuiz(){
+  const box=document.getElementById('quiz');
+  box.innerHTML = Q.map((q,i)=>`
+   <div style="border-top:1px solid var(--line);padding:12px 0">
+     <p><b>${i+1}. ${q.s}</b></p>
+     <p><button class="ghost" id="q${i}a" onclick="ans(${i},'a')">Prompt A</button> <span class="mono">${q.a}</span></p>
+     <p><button class="ghost" id="q${i}b" onclick="ans(${i},'b')">Prompt B</button> <span class="mono">${q.b}</span></p>
+     <div id="f${i}" class="fb"></div>
+   </div>`).join('');
+}
+function ans(i,c){
+  if(answered[i]) return; answered[i]=c;
+  const q=Q[i], f=document.getElementById('f'+i), good=(c===q.ok);
+  document.getElementById('q'+i+c).classList.add('chosen'); document.getElementById('q'+i+'a').disabled=true; document.getElementById('q'+i+'b').disabled=true;
+  f.innerHTML=(good?'<span class="ok">Correct.</span> ':'<span class="bad">Not quite - Prompt '+q.ok.toUpperCase()+' is better.</span> ')+q.why;
+  f.className='fb show '+(good?'good':'no');
+  const n=Object.keys(answered).length, s=Object.keys(answered).filter(k=>answered[k]===Q[k].ok).length;
+  document.getElementById('quizScore').textContent = n===Q.length ? `Score: ${s} / ${Q.length}` : `Answered ${n} of ${Q.length}`;
+}
+renderQuiz();
+
+</script>
+</body></html>

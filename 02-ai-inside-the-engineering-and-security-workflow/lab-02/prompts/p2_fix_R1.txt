@@ -1,0 +1,24 @@
+FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.
+
+Fix ONLY SPEC rule R1 in the function below.
+Rules: keep the function name and parameters exactly the same,
+use only the Python standard library, do not use a shell,
+do not hardcode secrets. Show the full corrected function,
+then explain the change in 2 sentences.
+
+<rule>
+R1 - parse_failed_logins(lines): Return {ip: count}. Count every line with Failed password for <user> from <ip> including Failed password for invalid user <user> from <ip>. Ignore all other lines.
+</rule>
+
+<function>
+def parse_failed_logins(lines):
+    """Return a dict {ip: number_of_failed_logins} from SSH auth log lines."""
+    pattern = re.compile(r"Failed password for (\w+) from (\S+)")
+    counts = {}
+    for line in lines:
+        match = pattern.search(line)
+        if match:
+            ip = match.group(2)
+            counts[ip] = counts.get(ip, 0) + 1
+    return counts
+</function>

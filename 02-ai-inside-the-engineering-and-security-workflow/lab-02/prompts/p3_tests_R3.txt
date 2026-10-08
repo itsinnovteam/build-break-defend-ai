@@ -1,0 +1,14 @@
+FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.
+
+Write pytest tests for SPEC rule R3 of triage_tool.py.
+Requirements: name every test test_r3_<something>,
+include boundary values and at least one malicious input,
+each test must FAIL if the rule is broken,
+use tmp_path for files and monkeypatch for environment variables,
+no network, no real data. Put any sample log lines directly
+inside the test file. Import is_valid_ip from triage_tool.
+Show only the Python code.
+
+<rule>
+R3 - is_valid_ip(ip): Return True only for a real IPv4 address (four numbers, each 0–255). Return False for anything else (e.g. 999.1.1.1, 1.2.3, abc, 1.2.3.4; rm -rf /, and IPv6 addresses such as ::1). Never raise.
+</rule>

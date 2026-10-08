@@ -1,0 +1,14 @@
+FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.
+
+Write pytest tests for SPEC rule R1 of triage_tool.py.
+Requirements: name every test test_r1_<something>,
+include boundary values and at least one malicious input,
+each test must FAIL if the rule is broken,
+use tmp_path for files and monkeypatch for environment variables,
+no network, no real data. Put any sample log lines directly
+inside the test file. Import parse_failed_logins from triage_tool.
+Show only the Python code.
+
+<rule>
+R1 - parse_failed_logins(lines): Return {ip: count}. Count every line with Failed password for <user> from <ip> including Failed password for invalid user <user> from <ip>. Ignore all other lines.
+</rule>

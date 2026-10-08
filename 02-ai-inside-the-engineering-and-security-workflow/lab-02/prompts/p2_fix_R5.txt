@@ -1,0 +1,20 @@
+FAKE TRAINING DATA ONLY. This file is used in Module 2, Lab 2.
+
+Fix ONLY SPEC rule R5 in the function below.
+Rules: keep the function name and parameters exactly the same,
+use only the Python standard library, do not use a shell,
+do not hardcode secrets. Show the full corrected function,
+then explain the change in 2 sentences.
+
+<rule>
+R5 - check_reputation(ip, feed): Return feed[ip] if the IP is in the feed. If the IP is not in the feed, or the feed is None, return "unknown". Never return "clean" by default (fail closed).
+</rule>
+
+<function>
+def check_reputation(ip, feed):
+    """Return the reputation verdict for ip from the intel feed dict."""
+    try:
+        return feed[ip]
+    except Exception:
+        return "clean"
+</function>
