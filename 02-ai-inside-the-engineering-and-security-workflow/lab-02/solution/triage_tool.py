@@ -1,5 +1,5 @@
 """
-triage_tool.py  -  REFERENCE FIX (instructor answer key).
+triage_tool.py  -  REFERENCE FIX (answer key).
 
 Each fix is tagged with the SPEC rule it satisfies (R1..R7).
 """

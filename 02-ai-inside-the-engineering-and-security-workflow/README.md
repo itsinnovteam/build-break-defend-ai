@@ -3,7 +3,7 @@
 Full step-by-step instructions are in Module2-AIEngineeringSecurityWorkflow.pptx (Part B).
 
 **Two tracks, same lesson:**
-- **Track A - Reviewer (no coding):** open `../simulations/sim6_lab2_reviewer_track.html`
+- **Track A - Reviewer (no coding):** open `../simulations/02-aiengineering-lab-02-reviewer-track-simulator.html`
   in a browser on your Windows laptop. Nothing to install. You do not need this folder.
 - **Track B - Hands-on (Python):** use this folder on your Module 0 VM in OCI.
 
@@ -64,4 +64,4 @@ See the guide, Part B. Challenge 2 adds a new test file `test_r8.py` - keep it s
 `test_triage_tool.py` so `meta_test.py` keeps working.
 
 ## After the lab
-Everyone takes `../simulations/final_assessment.html` (pass mark 10 of 12).
+Everyone takes `../simulations/02-aiengineering-final-assessment.html` (pass mark 10 of 12).
