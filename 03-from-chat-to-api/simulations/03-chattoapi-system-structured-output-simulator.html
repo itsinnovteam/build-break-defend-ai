@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulation 3 - Structured Output Discipline</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:980px;margin:0 auto}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px}
+header p{margin:0;color:#D5E3F0}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;background:var(--navy);color:#fff;outline:3px solid var(--amber)}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;background:var(--teal-l);color:var(--teal);font-weight:600}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{background:#EEF2F6}
+footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:600px){header h1{font-size:21px}.card{padding:14px}}
+</style><style>.term{background:#0F1B28;color:#E6EDF3;padding:10px 12px;border-radius:8px;white-space:pre-wrap;font-size:13px;overflow-wrap:anywhere}</style></head>
+<body>
+<header><div class="wrap"><small>Section 3 - Structured output, discipline</small><h1>Simulation 3 - Structured Output Discipline</h1><p>Turn the model's answer into data your code can trust - or refuse.</p></div></header>
+<main>
+
+<div class="card">
+  <h2>The contract (schema) - same as lab3/schema.py</h2>
+  <div class="analogy"><b>Think of it like...</b> a customs form instead of a letter. A letter can say anything in any order; a form has fixed boxes and allowed answers, so a machine can process it - and reject it when a box is wrong.</div>
+  <div class="mono term" style="font-size:13px">category           : brute_force | malware | phishing | misconfiguration | service_outage | benign | other
+severity           : low | medium | high | critical
+verdict            : likely_malicious | suspicious | likely_benign | needs_more_data
+confidence         : low | medium | high
+recommended_action : no_action | monitor | open_ticket | escalate_to_l2 |
+                     block_ip_request | isolate_host_request | rollback_request
+summary            : text, at most 400 characters
+indicators         : list of text items, at most 8
+All 7 fields required. No other fields allowed.</div>
+</div>
+
+<div class="card">
+  <h2>Be the validator</h2>
+  <div class="how"><b>How to play:</b> 8 replies came back from the model. For each one decide: <b>ACCEPT</b> (code may use it) or <b>REJECT</b> (retry once, then fail closed). The checker then runs the same rules as the lab code.</div>
+  <div id="cases"></div>
+  <p class="score" id="valScore">Decided 0 of 8</p>
+</div>
+
+<div class="card" id="fc" style="display:none">
+  <h2>Fail closed - what should the tool do?</h2>
+  <div class="how">The model returned invalid JSON twice for a HIGH severity EDR alert. Choose the tool's behaviour.</div>
+  <div id="fcq"></div>
+</div>
+
+</main>
+<footer>AI Bootcamp - Module 3: From chat to API. Works offline; no real AI is called; all data is fictional.</footer>
+<script>
+
+const ENUM={category:["brute_force","malware","phishing","misconfiguration","service_outage","benign","other"],
+ severity:["low","medium","high","critical"],verdict:["likely_malicious","suspicious","likely_benign","needs_more_data"],
+ confidence:["low","medium","high"],recommended_action:["no_action","monitor","open_ticket","escalate_to_l2","block_ip_request","isolate_host_request","rollback_request"]};
+const REQ=["category","severity","verdict","confidence","recommended_action","summary","indicators"];
+function validate(text){
+ let t=text.trim();
+ if(t.startsWith("```")){t=t.replace(/^`+/,"").replace(/`+$/,""); if(t.toLowerCase().startsWith("json"))t=t.slice(4); t=t.trim();}
+ let o; try{o=JSON.parse(t);}catch(e){return ["the answer is not valid JSON"];}
+ if(typeof o!=="object"||o===null||Array.isArray(o))return ["the answer is not a JSON object"];
+ const err=[];
+ REQ.forEach(k=>{if(!(k in o))err.push("missing field '"+k+"'");});
+ Object.keys(o).forEach(k=>{if(!REQ.includes(k))err.push("unexpected field '"+k+"'");});
+ Object.keys(ENUM).forEach(k=>{if(k in o){if(typeof o[k]!=="string")err.push("'"+k+"' must be text");else if(!ENUM[k].includes(o[k]))err.push("'"+k+"' has a value that is not allowed: '"+o[k]+"'");}});
+ if("summary" in o){if(typeof o.summary!=="string")err.push("'summary' must be text");else if(o.summary.length>400)err.push("'summary' is too long");}
+ if("indicators" in o){if(!Array.isArray(o.indicators)||!o.indicators.every(x=>typeof x==="string"))err.push("'indicators' must be a list of text items");else if(o.indicators.length>8)err.push("'indicators' has too many items");}
+ return err;
+}
+const base={category:"brute_force",severity:"high",verdict:"likely_malicious",confidence:"high",recommended_action:"block_ip_request",summary:"12 failed logins for non-existent users from 203.0.113.50 in 77 seconds.",indicators:["203.0.113.50","invalid user admin"]};
+const J=o=>JSON.stringify(o);
+const C=[
+ ["Clean JSON",J(base)],
+ ["Markdown fence around it","```json\n"+J(base)+"\n```"],
+ ["Friendly prose","Sure! This is clearly a brute-force attack from 203.0.113.50. I'd block it right away."],
+ ["Severity in capitals",J(Object.assign({},base,{severity:"High"}))],
+ ["Invented action",J(Object.assign({},base,{recommended_action:"run: iptables -A INPUT -s 203.0.113.50 -j DROP"}))],
+ ["Extra field",J(Object.assign({},base,{attacker_group:"APT-unknown"}))],
+ ["Indicators as one string",J(Object.assign({},base,{indicators:"203.0.113.50, admin"}))],
+ ["Cut off (hit the output-token limit)",J(base).slice(0,120)],
+];
+const pickd={};
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+document.getElementById('cases').innerHTML=C.map((c,i)=>`<div style="border-top:1px solid var(--line);padding:12px 0">
+ <p style="margin:0 0 6px"><span class="pill">Reply ${i+1}</span> ${esc(c[0])}</p>
+ <div class="mono term" style="font-size:12.5px">${esc(c[1])}</div>
+ <button class="ghost" id="c${i}A" onclick="dec(${i},'A')">ACCEPT</button><button class="ghost" id="c${i}R" onclick="dec(${i},'R')">REJECT</button>
+ <div id="cf${i}" class="fb"></div></div>`).join('');
+function dec(i,v){ if(pickd[i])return; pickd[i]=v;
+ ['A','R'].forEach(x=>document.getElementById('c'+i+x).disabled=true); document.getElementById('c'+i+v).classList.add('chosen');
+ const err=validate(C[i][1]), truth=err.length?'R':'A', ok=v===truth, f=document.getElementById('cf'+i);
+ let why=truth==='A'?(i===1?"The fence is removed, then the JSON passes every rule. (Lab 3 tolerates a fence - nothing else.)":"All 7 fields present, every value allowed."):"Validator: "+err.join("; ");
+ if(i===4)why+=". Even if it looked useful, a command from the model must never be run - the allowlist stops it.";
+ if(i===3)why+=". Exact values matter: code compares text exactly.";
+ if(i===7)why+=". Keep answers short and set a sensible output limit.";
+ f.innerHTML=(ok?'<span class="ok">Correct.</span> ':'<span class="bad">The checker says '+(truth==='A'?'ACCEPT':'REJECT')+'.</span> ')+why; f.className='fb show '+(ok?'good':'no');
+ const n=Object.keys(pickd).length, s=Object.keys(pickd).filter(k=>pickd[k]===(validate(C[k][1]).length?'R':'A')).length;
+ document.getElementById('valScore').textContent=n===C.length?`Score: ${s} / ${C.length}`:`Decided ${n} of ${C.length}`;
+ if(n===C.length)document.getElementById('fc').style.display='block';
+}
+const FC=[
+ ["Mark it as benign so the queue keeps moving",false,"That is failing OPEN: the riskiest choice for a HIGH alert."],
+ ["Guess the fields from the model's text with a regex",false,"Guessing turns an unreliable answer into an unreliable decision."],
+ ["Send it to a human with a clear 'AI answer invalid' reason and exit code 2",true,"Fail closed: no automatic decision, a human reviews, scripts see exit code 2."],
+ ["Retry forever until the model gets it right",false,"Endless retries cost tokens and time and can hide an outage. One retry, then fail closed."],
+];
+document.getElementById('fcq').innerHTML=FC.map((o,i)=>`<button class="ghost" id="fc${i}" onclick="fcp(${i})" style="display:block;text-align:left">${esc(o[0])}</button>`).join('')+'<div id="fcf" class="fb"></div>';
+let fcd=false;
+function fcp(i){ if(fcd)return; fcd=true; FC.forEach((_,j)=>document.getElementById('fc'+j).disabled=true); document.getElementById('fc'+i).classList.add('chosen');
+ const f=document.getElementById('fcf'); f.innerHTML=(FC[i][1]?'<span class="ok">Correct.</span> ':'<span class="bad">Not quite.</span> ')+FC[i][2]+(FC[i][1]?'':' Best: send it to a human with exit code 2.');
+ f.className='fb show '+(FC[i][1]?'good':'no');}
+
+</script>
+</body></html>

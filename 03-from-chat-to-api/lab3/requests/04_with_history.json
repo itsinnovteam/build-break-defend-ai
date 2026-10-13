@@ -1,0 +1,23 @@
+{
+  "model": "llama3.1:8b",
+  "stream": false,
+  "options": {
+    "temperature": 0,
+    "seed": 42,
+    "num_predict": 80
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": "In one sentence: what is an SSH brute-force attack?"
+    },
+    {
+      "role": "assistant",
+      "content": "An SSH brute-force attack is when an attacker tries many usernames and passwords against an SSH server until one works."
+    },
+    {
+      "role": "user",
+      "content": "What was my previous question? Answer in one sentence."
+    }
+  ]
+}

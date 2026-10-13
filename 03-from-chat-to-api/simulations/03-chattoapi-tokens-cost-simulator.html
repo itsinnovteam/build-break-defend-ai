@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulation 4 - Tokens, Context and Cost</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:980px;margin:0 auto}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px}
+header p{margin:0;color:#D5E3F0}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;background:var(--navy);color:#fff;outline:3px solid var(--amber)}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:13px;background:var(--teal-l);color:var(--teal);font-weight:600}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}
+th{background:#EEF2F6}
+footer{max-width:980px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:600px){header h1{font-size:21px}.card{padding:14px}}
+</style></head>
+<body>
+<header><div class="wrap"><small>Section 4 - Cost/tokens</small><h1>Simulation 4 - Tokens, Context and Cost</h1><p>See what one alert costs, what 30,000 cost, and when the input stops fitting.</p></div></header>
+<main>
+
+<div class="card">
+  <h2>Part A - Token and cost calculator</h2>
+  <div class="analogy"><b>Think of it like...</b> a taxi meter that runs on words. You pay for every word you send (input) and, at a higher rate, every word the driver says back (output). A long log in the back seat makes every trip more expensive.</div>
+  <div class="how"><b>How to play:</b> pick an input, change the numbers, and watch tokens, context window and monthly cost. Prices are <b>examples</b> (same as lab3/prices.example.json), not a real price list.</div>
+  <p><b>Input:</b>
+   <select id="inp" onchange="calc()" style="font:inherit;padding:6px;border-radius:6px;max-width:100%">
+    <option value="2856">Alert a1 + system prompt (2,856 characters)</option>
+    <option value="4579">Whole sample_auth.log + system prompt (4,579 characters)</option>
+    <option value="40000">A day of raw logs pasted in (40,000 characters)</option>
+    <option value="1770">Alert a4 + system prompt, short (1,770 characters)</option>
+   </select></p>
+  <div style="display:flex;flex-wrap:wrap;gap:14px">
+   <label>Output tokens per answer<br><input id="out" type="number" value="150" min="10" max="4000" oninput="calc()" style="width:120px;font:inherit;padding:6px"></label>
+   <label>Alerts per day<br><input id="day" type="number" value="1000" min="1" max="1000000" oninput="calc()" style="width:120px;font:inherit;padding:6px"></label>
+   <label>Input $ / 1M tokens<br><input id="pin" type="number" value="3" step="0.1" min="0" oninput="calc()" style="width:120px;font:inherit;padding:6px"></label>
+   <label>Output $ / 1M tokens<br><input id="pout" type="number" value="15" step="0.1" min="0" oninput="calc()" style="width:120px;font:inherit;padding:6px"></label>
+  </div>
+  <table style="margin-top:14px">
+   <tr><th>Input tokens (about chars / 4)</th><td id="t_in"></td></tr>
+   <tr><th>Cost per alert</th><td id="t_one"></td></tr>
+   <tr><th>Cost per month (30 days)</th><td id="t_mon"></td></tr>
+   <tr><th>Local Ollama on the VM</th><td>$0 per token - you pay for the VM and wait longer (about 3 to 10 output tokens per second on a CPU, so this answer takes about <span id="t_wait"></span> s just to write)</td></tr>
+  </table>
+  <p style="margin:14px 0 4px"><b>Context window (4,096 tokens in Lab 3):</b></p>
+  <div style="background:#EEF2F6;border-radius:6px;height:26px;position:relative;overflow:hidden">
+   <div id="barIn" style="background:var(--teal);height:100%;position:absolute;left:0;top:0"></div>
+   <div id="barOut" style="background:var(--amber);height:100%;position:absolute;top:0"></div>
+  </div>
+  <p id="win" style="margin:6px 0 0"></p>
+</div>
+
+<div class="card">
+  <h2>Part B - Quick checks</h2>
+  <div id="qq"></div>
+  <p class="score" id="qScore">Answered 0 of 4</p>
+</div>
+
+</main>
+<footer>AI Bootcamp - Module 3: From chat to API. Works offline; no real AI is called; all data is fictional.</footer>
+<script>
+
+const fmt=v=>v>=1?'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'$'+v.toFixed(5);
+function calc(){
+ const chars=+document.getElementById('inp').value, out=Math.max(0,+document.getElementById('out').value||0),
+  day=Math.max(0,+document.getElementById('day').value||0), pin=Math.max(0,+document.getElementById('pin').value||0), pout=Math.max(0,+document.getElementById('pout').value||0);
+ const tin=Math.round(chars/4), one=(tin*pin+out*pout)/1e6;
+ document.getElementById('t_in').textContent=tin.toLocaleString('en-US')+' tokens';
+ document.getElementById('t_one').textContent=fmt(one);
+ document.getElementById('t_mon').textContent=fmt(one*day*30)+'  ('+(day*30).toLocaleString('en-US')+' alerts)';
+ document.getElementById('t_wait').textContent=Math.round(out/10)+' to '+Math.round(out/3);
+ const W=4096, a=Math.min(tin,W), b=Math.min(out,Math.max(0,W-a));
+ document.getElementById('barIn').style.width=(a/W*100)+'%';
+ const bo=document.getElementById('barOut'); bo.style.left=(a/W*100)+'%'; bo.style.width=(b/W*100)+'%';
+ const used=tin+out, w=document.getElementById('win');
+ if(used>W){w.innerHTML='<span class="bad">Does not fit: '+used.toLocaleString('en-US')+' tokens needed.</span> The start of the input would be cut off silently or the answer truncated. Send only the relevant lines (grep, tail) - Lab 3 refuses inputs over 6,000 characters.';}
+ else{w.innerHTML='<span class="ok">Fits:</span> '+used.toLocaleString('en-US')+' of 4,096 tokens ('+Math.round(used/W*100)+'%). <span class="pill">teal = input</span> <span class="pill" style="background:var(--amber-l);color:#8A5A10">amber = output</span>';}
+}
+const Q=[
+ ["Which usually costs more per token on cloud APIs?",["Input tokens","Output tokens","They always cost the same"],1,"Output tokens are typically several times more expensive than input tokens, so ask for short, structured answers."],
+ ["A chat has 30 earlier turns. You ask one short new question. What do you pay for?",["Only the new question","The whole history you resend, plus the answer","Nothing - history is free"],1,"The API is stateless: you resend (and pay for) the history every time."],
+ ["Your log is 10 times bigger than the context window. Best approach?",["Paste it all; the model will cope","Filter first (grep the relevant lines, last N lines), then send","Raise the price limit"],1,"Filter first. It is cheaper, faster, and the model sees the evidence that matters."],
+ ["Why does Lab 3 set a cap on output tokens (num_predict)?",["To make the model smarter","To limit cost and time, and stop runaway answers","Ollama requires it"],1,"A hard cap protects cost and time. Lab 3 combines it with a short-answer schema."],
+];
+const a={};
+document.getElementById('qq').innerHTML=Q.map((q,i)=>`<div style="border-top:1px solid var(--line);padding:10px 0"><p style="margin:0 0 6px">${q[0]}</p>${q[1].map((o,j)=>`<button class="ghost" id="q${i}_${j}" onclick="ans(${i},${j})">${o}</button>`).join('')}<div id="qf${i}" class="fb"></div></div>`).join('');
+function ans(i,j){ if(i in a)return; a[i]=j; Q[i][1].forEach((_,k)=>document.getElementById('q'+i+'_'+k).disabled=true); document.getElementById('q'+i+'_'+j).classList.add('chosen');
+ const ok=j===Q[i][2],f=document.getElementById('qf'+i); f.innerHTML=(ok?'<span class="ok">Correct.</span> ':'<span class="bad">Not quite.</span> ')+Q[i][3]; f.className='fb show '+(ok?'good':'no');
+ const n=Object.keys(a).length,s=Object.keys(a).filter(k=>a[k]===Q[k][2]).length;
+ document.getElementById('qScore').textContent=n===Q.length?`Score: ${s} / ${Q.length}`:`Answered ${n} of ${Q.length}`;}
+calc();
+
+</script>
+</body></html>

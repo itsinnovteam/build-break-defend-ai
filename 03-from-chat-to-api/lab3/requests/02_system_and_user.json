@@ -1,0 +1,19 @@
+{
+  "model": "llama3.1:8b",
+  "stream": false,
+  "options": {
+    "temperature": 0,
+    "seed": 42,
+    "num_predict": 80
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a SOC assistant. Answer in at most 12 words. No greetings."
+    },
+    {
+      "role": "user",
+      "content": "In one sentence: what is an SSH brute-force attack?"
+    }
+  ]
+}

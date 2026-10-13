@@ -1,0 +1,15 @@
+SOURCE: bastion01 /var/log/secure (SSH)   COLLECTED BY: SIEM rule SSH-FAILED-LOGINS
+RULE: more than 5 failed SSH logins from one IP within 2 minutes
+
+Oct  8 09:00:35 bastion01 sshd[2205]: Failed password for invalid user admin from 203.0.113.50 port 40000 ssh2
+Oct  8 09:00:42 bastion01 sshd[2206]: Failed password for invalid user oracle from 203.0.113.50 port 40001 ssh2
+Oct  8 09:00:49 bastion01 sshd[2207]: Failed password for invalid user test from 203.0.113.50 port 40002 ssh2
+Oct  8 09:00:56 bastion01 sshd[2208]: Failed password for invalid user guest from 203.0.113.50 port 40003 ssh2
+Oct  8 09:01:03 bastion01 sshd[2209]: Failed password for invalid user ubuntu from 203.0.113.50 port 40004 ssh2
+Oct  8 09:01:10 bastion01 sshd[2210]: Failed password for invalid user support from 203.0.113.50 port 40005 ssh2
+Oct  8 09:01:17 bastion01 sshd[2211]: Failed password for invalid user postgres from 203.0.113.50 port 40006 ssh2
+Oct  8 09:01:24 bastion01 sshd[2212]: Failed password for invalid user ftpuser from 203.0.113.50 port 40007 ssh2
+Oct  8 09:01:31 bastion01 sshd[2213]: Failed password for invalid user deploy from 203.0.113.50 port 40008 ssh2
+Oct  8 09:01:38 bastion01 sshd[2214]: Failed password for invalid user pi from 203.0.113.50 port 40009 ssh2
+Oct  8 09:01:45 bastion01 sshd[2215]: Failed password for invalid user backup from 203.0.113.50 port 40010 ssh2
+Oct  8 09:01:52 bastion01 sshd[2216]: Failed password for invalid user git from 203.0.113.50 port 40011 ssh2

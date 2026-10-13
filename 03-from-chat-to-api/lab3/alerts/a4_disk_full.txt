@@ -1,0 +1,7 @@
+MONITORING ALERT   severity: WARNING   TEAM: IT Operations / Service Desk
+Host:     app-srv-02 (internal HR web app)
+Check:    disk usage /var
+Value:    95% used (threshold 90%), was 71% yesterday
+Largest:  /var/log/hrapp/app.log  38 GB, last rotated 21 days ago
+Note:     log rotation job "logrotate-hrapp" shows status FAILED since 21 days
+Impact:   none reported yet; the app stops writing at 100%

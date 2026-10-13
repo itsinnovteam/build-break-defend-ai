@@ -1,0 +1,15 @@
+{
+  "model": "llama3.1:8b",
+  "temperature": 0,
+  "max_tokens": 80,
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a SOC assistant. Answer in at most 12 words. No greetings."
+    },
+    {
+      "role": "user",
+      "content": "In one sentence: what is an SSH brute-force attack?"
+    }
+  ]
+}

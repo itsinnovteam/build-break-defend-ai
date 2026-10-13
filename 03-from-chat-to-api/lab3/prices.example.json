@@ -1,0 +1,13 @@
+{
+  "_note": "EXAMPLE prices for teaching only. Real prices differ by provider and model and change often - always check the provider's current price list.",
+  "currency": "USD",
+  "example_cloud_model": {
+    "input_per_million_tokens": 3.00,
+    "output_per_million_tokens": 15.00
+  },
+  "local_ollama_on_vm": {
+    "input_per_million_tokens": 0.00,
+    "output_per_million_tokens": 0.00,
+    "note": "No per-token bill, but you pay for the VM (CPU, memory) and wait longer."
+  }
+}
