@@ -1,0 +1,15 @@
+flowchart LR
+    subgraph W["Your Windows laptop"]
+        CMD["Command Prompt<br/>ssh and scp<br/>(built in)"]
+    end
+    subgraph VM["Module 0 VM in OCI: Oracle Linux 9, CPU only"]
+        direction LR
+        LAB["~/lab4<br/>Python 3.9 + venv<br/>standard library only"]
+        OLL["Ollama on 127.0.0.1:11434<br/>llama3.1:8b (chat)<br/>all-minilm (embeddings)"]
+        DB[("index/vectors.db<br/>SQLite vector store")]
+        LOG["rag_audit.log"]
+        LAB <--> OLL
+        LAB <--> DB
+        LAB --> LOG
+    end
+    CMD -- "ssh" --> LAB

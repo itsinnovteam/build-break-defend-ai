@@ -1,0 +1,15 @@
+flowchart LR
+    Q["Question:<br/>How do I apply for<br/>emergency leave?"]
+    Q --> M1
+    Q --> R
+    subgraph A["Model alone"]
+        M1["LLM<br/>training data only"] --> G["General answer:<br/>may invent forms,<br/>deadlines, approvers"]
+    end
+    subgraph B["RAG: grounded in our documents"]
+        R["Retrieve HR-001<br/>Emergency leave policy<br/>(only documents<br/>you may see)"] --> M2["LLM answers<br/>from the sources"]
+        M2 --> C["Answer with citations [S1]<br/>or: not in the documents"]
+    end
+    classDef bad fill:#FBE6E4,stroke:#B3261E,color:#0F2A44
+    classDef good fill:#E6F0E4,stroke:#2E7D32,color:#0F2A44
+    class G bad
+    class C good

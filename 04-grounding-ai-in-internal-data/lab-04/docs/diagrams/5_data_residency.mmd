@@ -1,0 +1,14 @@
+flowchart TB
+    D["Document metadata<br/>residency: any or local-only"] --> CH{"Where will the text<br/>be processed?"}
+    CH -- "local model on the VM" --> OK["Allowed:<br/>any + local-only"]
+    CH -- "cloud model (simulated)" --> CL["Allowed: 'any' only<br/>local-only is held back"]
+    OK --> P
+    CL --> P
+    subgraph P["Every place text can travel: check each one"]
+        direction LR
+        E1["Embedding service<br/>(at ingest)"]
+        E2["Chat model<br/>(at question time)"]
+        E3["Logs, telemetry,<br/>traces"]
+        E4["Backups and<br/>index copies"]
+        E1 ~~~ E2 ~~~ E3 ~~~ E4
+    end

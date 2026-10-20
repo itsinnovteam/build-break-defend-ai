@@ -1,0 +1,11 @@
+{
+  "_comment": "TRUSTED server-side role assignments (the 'directory'). In a company this comes from SSO / Active Directory groups. Users cannot change it from a question or a command-line option.",
+  "users": {
+    "ana":  {"name": "Ana (SOC analyst)",             "roles": ["employee", "soc"]},
+    "ben":  {"name": "Ben (DevOps engineer)",         "roles": ["employee", "devops"]},
+    "carl": {"name": "Carl (IT Operations)",          "roles": ["employee", "itops"]},
+    "hana": {"name": "Hana (HR officer)",             "roles": ["employee", "hr"]},
+    "sam":  {"name": "Sam (Security lead)",           "roles": ["employee", "soc", "security-lead"]},
+    "dana": {"name": "Dana (external contractor)",    "roles": ["contractor"]}
+  }
+}

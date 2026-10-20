@@ -1,0 +1,19 @@
+flowchart LR
+    subgraph V1["v1 VULNERABLE: the model is asked to enforce access"]
+        direction TB
+        A1["Question + a role<br/>typed by the user"] --> B1["Search ALL chunks"]
+        B1 --> C1["Prompt holds restricted text<br/>+ 'only use allowed sources'"]
+        C1 --> D1["The LLM decides<br/>(can be talked out of it)"]
+    end
+    subgraph V2["v2 SECURE: trusted code enforces access"]
+        direction TB
+        A2["Question + user id<br/>from the login"] --> R2["Roles from the directory<br/>(server side)"]
+        R2 --> B2["Search ONLY allowed chunks<br/>(filter inside the query)"]
+        B2 --> C2["Prompt holds only what<br/>this user may read"]
+        C2 --> D2["The LLM writes the answer<br/>(nothing restricted to leak)"]
+    end
+    V1 ~~~ V2
+    classDef bad fill:#FBE6E4,stroke:#B3261E,color:#0F2A44
+    classDef good fill:#E6F0E4,stroke:#2E7D32,color:#0F2A44
+    class A1,B1,C1,D1 bad
+    class A2,R2,B2,C2,D2 good

@@ -1,0 +1,8 @@
+flowchart LR
+    K["kb/*.md<br/>15 synthetic documents<br/>+ metadata header"] --> L["1 LOAD<br/>check metadata<br/>(fail closed)"]
+    L --> C["2 CLEAN<br/>characters, spaces,<br/>headings"]
+    C --> H["3 CHUNK<br/>about 450 characters<br/>each chunk keeps<br/>doc_id, roles, residency"]
+    H --> E["4 EMBED<br/>Ollama all-minilm<br/>384 numbers per chunk<br/>(local, on the VM)"]
+    E --> S[("5 STORE<br/>index/vectors.db (SQLite)<br/>chunks + vectors + roles")]
+    classDef once fill:#E3F2EF,stroke:#0E8C7E,color:#0F2A44
+    class K,L,C,H,E,S once

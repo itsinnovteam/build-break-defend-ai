@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulation 1 - Why RAG</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;--blue-l:#E7EEF6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+header .wrap>div{flex:1}
+header svg{flex:none}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px;font-family:Cambria,Georgia,serif}
+header p{margin:0;color:#D5E3F0}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy);font-family:Cambria,Georgia,serif}
+.card h3{margin:14px 0 6px;font-size:16px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+.soc{background:var(--blue-l);border-left:4px solid var(--navy);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button.small{padding:4px 10px;font-size:14px}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;outline:3px solid var(--amber)}
+select{font:inherit;padding:6px 8px;border-radius:6px;border:1px solid var(--line);max-width:100%}
+label.inl{display:inline-flex;align-items:center;gap:6px;margin:4px 14px 4px 0}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+pre.term{background:#0F1B28;color:#E6EDF3;padding:12px 14px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.45;white-space:pre}
+pre.term .cmd{color:#F2B655}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;background:var(--teal-l);color:var(--teal);font-weight:600;margin:1px 2px}
+.pill.red{background:var(--red-l);color:var(--red)}.pill.amber{background:var(--amber-l);color:var(--amber)}
+.pill.navy{background:var(--blue-l);color:var(--navy)}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;font-size:15px}
+th{background:#EEF2F6}
+.scroll{overflow-x:auto}
+.bar{height:10px;background:var(--teal);border-radius:5px}
+.bar.off{background:#C9D2DC}.bar.red{background:var(--red)}
+.chunk{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px;background:#fff}
+.chunk.leak{border-color:var(--red);background:var(--red-l)}
+.chunk.sent{border-color:var(--teal);background:var(--teal-l)}
+.chunk.dim{opacity:.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.steps button{margin:2px 4px 2px 0}
+nav.pager{max-width:1000px;margin:0 auto;padding:0 16px 10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+nav.pager a{color:var(--navy);font-weight:600}
+footer{max-width:1000px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:700px){header h1{font-size:21px}.card{padding:14px}.grid2{grid-template-columns:1fr}label.inl{display:flex;flex-wrap:wrap;margin-right:0}label.inl select{width:100%}}
+</style></head>
+<body>
+<header><div class="wrap"><div><small>AI Bootcamp - Module 4 - Section 4.1</small><h1>Simulation 1 - Why RAG</h1><p>The model alone guesses about your company. Grounded in your documents, it answers with facts you can check.</p></div><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" role="img" aria-label="Module 4 logo" viewBox="0 0 512 512"><circle cx="256" cy="256" r="250" fill="#213A55" stroke="#7F9AB5" stroke-width="6"/><circle cx="256" cy="256" r="172" fill="#0E8C7E"/><svg x="175.5" y="164.0" width="161.0" height="184.0" viewBox="0 0 448 512" fill="#FFFFFF"><path d="M448 73.143v45.714C448 159.143 347.667 192 224 192S0 159.143 0 118.857V73.143C0 32.857 100.333 0 224 0s224 32.857 224 73.143zM448 176v102.857C448 319.143 347.667 352 224 352S0 319.143 0 278.857V176c48.125 33.143 136.208 48.572 224 48.572S399.874 209.143 448 176zm0 160v102.857C448 479.143 347.667 512 224 512S0 479.143 0 438.857V336c48.125 33.143 136.208 48.572 224 48.572S399.874 369.143 448 336z"/></svg><circle cx="395" cy="395" r="79" fill="#C9821B" stroke="#0F2A44" stroke-width="12"/><svg x="360.0" y="355.0" width="70.0" height="80.0" viewBox="0 0 448 512" fill="#FFFFFF"><path d="M400 224h-24v-72C376 68.2 307.8 0 224 0S72 68.2 72 152v72H48c-26.5 0-48 21.5-48 48v192c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V272c0-26.5-21.5-48-48-48zm-104 0H152v-72c0-39.7 32.3-72 72-72s72 32.3 72 72v72z"/></svg></svg></div></header>
+<main>
+
+<div class="card">
+  <h2>Part A - Closed book or open book?</h2>
+  <div class="analogy"><b>Think of it like...</b> an exam. The model alone sits a <b>closed-book</b> exam about a company it
+  has never worked at. RAG makes it an <b>open-book</b> exam: we hand it the right pages of OUR handbook first, and it must
+  quote them.</div>
+  <div class="how">Question from the module brief: <b id="q"></b><br>Ask the model alone first. Then click each highlighted
+  claim and decide: is it from <b>our</b> policy, or a guess?</div>
+  <button id="bAlone">Ask the model alone</button>
+  <div id="alone" style="display:none"></div>
+  <div class="fb" id="fbA"></div>
+  <div id="ragBox" style="display:none;margin-top:14px">
+    <button id="bRag">Now ask with RAG (retrieve our HR policy first, as ana)</button>
+    <div id="rag"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Part B - When the documents do not have the answer</h2>
+  <div class="how">A good RAG assistant says <b>"I could not find this"</b> instead of guessing. Lab 4 uses a
+  <b>minimum similarity of 0.30</b>: chunks below it are "not relevant enough" and nothing is sent to the AI.
+  Question: <b id="vq"></b></div>
+  <label class="inl">Minimum similarity: <input type="range" id="thr" min="0.10" max="0.50" step="0.05" value="0.30"> <b id="thrv">0.30</b></label>
+  <div id="vacOut"></div>
+  <div class="fb" id="fbV"></div>
+</div>
+
+<div class="card">
+  <h2>Part C - RAG, paste, fine-tune, system prompt - or the tool itself?</h2>
+  <div class="analogy"><b>Think of it like...</b> a new hire. RAG = give them the handbook and tell them to look things up.
+  Pasting = hand them one page for one task. System prompt = tell them how to write. Fine-tuning = months of training
+  that changes their habits, not their knowledge of this week's facts. And some questions are best answered by the tool itself.</div>
+  <div class="how">Tenable and ClamAV are <b>learning examples</b>. Our security toolset has many more tools (EDR, SIEM, firewalls, email security, cloud posture); the same decisions apply to all of them.</div>
+  <div id="dec"></div><p class="score" id="decS"></p>
+</div>
+
+<div class="card">
+  <h2>Check yourself</h2>
+  <div id="quiz"></div>
+</div>
+
+</main>
+<nav class="pager"><span></span><a href="index.html">All simulations</a><span><a href="sim2_pipeline.html">Simulation 2 - The pipeline &rarr;</a></span></nav>
+<footer>AI Bootcamp - Module 4: Grounding AI in internal data. Works offline in any browser. No real AI is called: retrieval results were computed with the real Lab 4 code and the all-minilm embedding model; AI answers are examples. All data is fictional.</footer>
+<script>
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+function fb(id,cls,html){const e=$(id);e.className='fb show '+cls;e.innerHTML=html;}
+function mcq(containerId, items, onScore){
+  // items: [{q, opts:[...], a:index, why:"..."}]
+  const box=$(containerId); let answered=0, right=0;
+  box.innerHTML=items.map((it,i)=>`<div style="margin:12px 0"><b>${i+1}. ${esc(it.q)}</b><div id="${containerId}_o${i}">`+
+    it.opts.map((o,j)=>`<button class="ghost" data-i="${i}" data-j="${j}">${esc(o)}</button>`).join('')+
+    `</div><div class="fb" id="${containerId}_f${i}"></div></div>`).join('')+
+    `<p class="score" id="${containerId}_s"></p>`;
+  box.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    const i=+b.dataset.i, j=+b.dataset.j, it=items[i];
+    box.querySelectorAll(`#${containerId}_o${i} button`).forEach(x=>{x.disabled=true;});
+    b.classList.add('chosen'); answered++; if(j===it.a) right++;
+    fb(`${containerId}_f${i}`, j===it.a?'good':'no', (j===it.a?'<span class="ok">Correct.</span> ':'<span class="bad">Not quite.</span> Answer: <b>'+esc(it.opts[it.a])+'</b>. ')+esc(it.why));
+    if(answered===items.length){$(`${containerId}_s`).textContent=`Score: ${right} of ${items.length}`; if(onScore) onScore(right);}
+  }));
+}
+
+const D={"q":"How do I apply for emergency leave according to our company's HR policy?","alone":"To apply for emergency leave, you usually notify your manager or HR as soon as possible, fill in an emergency leave request form (often called a Leave Application Form) in your HR system, and provide supporting documents such as a medical certificate. Many companies allow 3 to 5 days of emergency leave per year. Check your employee handbook for the exact rules.","rag":"To apply for emergency leave:\n1. Tell your direct manager as soon as possible, and at the latest 2 hours after your shift starts, by phone or Teams chat [S2].\n2. File form HR-F-12 (Emergency Leave Request) in the PeopleDesk portal within 3 working days after you return to work [S2].\n3. If the leave is longer than 1 day, attach a supporting document such as a hospital or death certificate [S1].\nYou have up to 3 working days of paid emergency leave per calendar year [S3].","sources":[{"id":"HR-001#3","sim":0.7786,"text":"For emergency leave of more than 1 day, attach a supporting document to form HR-F-12, for example a hospital certificate or a death certificate. Your manager approves the request in PeopleDesk, and HR checks it. Questions: HR helpdesk, extension 2100, hr-help@example.com."},{"id":"HR-001#2","sim":0.7476,"text":"How to apply: tell your direct manager as soon as possible, and at the latest 2 hours after your shift starts, by phone or Teams chat. Then file form HR-F-12 (Emergency Leave Request) in the PeopleDesk portal within 3 working days after you return to work."},{"id":"HR-001#1","sim":0.6132,"text":"Emergency leave policy Emergency leave is for sudden, serious events you could not plan for, such as the hospitalisation or death of a close family member, or a fire or flood at your home. Every regular employee has up to 3 working days of paid emergency leave per calendar year. Unused emergency leave does not carry over to the next year."}],"vac":"How many vacation days do I get per year?","vacRank":[{"id":"HR-001#1","sim":0.2455,"roles":["employee","hr"]},{"id":"SEC-002#1","sim":0.197,"roles":["devops","itops","soc"]},{"id":"ITOPS-002#1","sim":0.1525,"roles":["devops","itops"]},{"id":"HR-002#1","sim":0.1461,"roles":["hr"]},{"id":"SEC-003#2","sim":0.1374,"roles":["devops","soc"]}],"claims":[["notify your manager or HR as soon as possible","guess","Close, but vague. Our policy says: your direct manager, at the latest 2 hours after your shift starts."],["an emergency leave request form (often called a Leave Application Form)","guess","Invented name. Our form is HR-F-12 (Emergency Leave Request) in PeopleDesk."],["supporting documents such as a medical certificate","guess","Half right by luck. Ours: only for more than 1 day, attached to HR-F-12."],["Many companies allow 3 to 5 days of emergency leave per year","guess","A general statement, not our rule. Ours: up to 3 working days, paid, no carry-over."]],"decide":[["HR answers emergency-leave questions from a policy that changes every year.",0,"Facts that change: keep them in documents and retrieve them. Re-index when the policy changes."],["Every incident summary must follow the same 5-heading format.",3,"That is behaviour and format, not facts. A system prompt (Module 3) does it with no training."],["You need one summary of a single 2-page change request, today.",1,"One short document, one question: just paste it into the prompt. RAG is for many documents."],["System owners ask 'which of MY Tenable criticals are past SLA, and who can approve an exception?'",0,"Tenable keeps detecting and scoring. RAG adds the exception policy and owner list, with sources."],["ClamAV flagged a file on build-agent-03. The team asks 'what do we do now, and who do we tell?'",0,"ClamAV stays the detector. RAG retrieves the malware playbook and the asset owner for the answer."],["Thousands of past tickets show a very specific writing style that prompts cannot reproduce.",2,"A narrow style learned from many examples is where fine-tuning can help - after prompts fail."],["Contractors and HR staff will use the same assistant, but must see different documents.",0,"Only RAG can filter per user at question time. A fine-tuned model knows the same things for everyone."],["A manager asks: how many Tenable critical findings are past SLA right now?",4,"Live, structured data: ask Tenable's dashboard, report or API. A model counting rows in retrieved chunks would be slow, stale and unreliable."]],"opts":["RAG","Paste into the prompt","Fine-tune","System prompt","The tool itself (dashboard or API)"]};
+
+$('q').textContent=D.q; $('vq').textContent=D.vac;
+let marked=0;
+$('bAlone').onclick=()=>{
+  let html=esc(D.alone);
+  D.claims.forEach((c,i)=>{html=html.replace(esc(c[0]),`<mark data-i="${i}" style="cursor:pointer;background:#FFE7A8;padding:0 2px">${esc(c[0])}</mark>`);});
+  $('alone').innerHTML=`<div class="chunk"><b>Model alone</b> <span class="pill amber">example answer</span><p style="margin:6px 0 0">${html}</p></div>
+  <div id="claimQ"></div>`;
+  $('alone').style.display='block'; $('bAlone').disabled=true;
+  $('alone').querySelectorAll('mark').forEach(m=>m.onclick=()=>{
+    const c=D.claims[+m.dataset.i];
+    $('claimQ').innerHTML=`<div class="chunk">Claim: <i>"${esc(c[0])}"</i><br>
+      <button class="small" id="cOur">From OUR policy</button><button class="small ghost" id="cGuess">A guess</button></div>`;
+    const done=(right)=>{fb('fbA',right?'good':'no',(right?'<span class="ok">Right.</span> ':'<span class="bad">No.</span> ')+esc(c[2]));
+      m.style.background=right?'#CDEBD8':'#F6C9C9'; marked++; if(marked>=2) $('ragBox').style.display='block';};
+    $('cOur').onclick=()=>done(false); $('cGuess').onclick=()=>done(true);
+  });
+};
+$('bRag').onclick=()=>{
+  $('bRag').disabled=true;
+  let ans=esc(D.rag).replace(/\n/g,'<br>').replace(/\[S(\d)\]/g,(m,n)=>`<a href="#" data-s="${n}" class="cite"><b>[S${n}]</b></a>`);
+  $('rag').innerHTML=`<p><b>1. Retrieve</b> - the 3 closest chunks ana may see (real similarity scores):</p>`+
+   D.sources.map((s,i)=>`<div class="chunk sent" id="src${i+1}"><b>[S${i+1}] ${esc(s.id)}</b> <span class="pill">similarity ${s.sim.toFixed(2)}</span><br>${esc(s.text)}</div>`).join('')+
+   `<p><b>2. Generate</b> - the model answers from these sources only:</p><div class="chunk"><span class="pill amber">example answer</span><br>${ans}</div>
+   <div class="fb show good">Every fact has a citation. <b>Click a citation</b> to see the source it came from. RAG improves
+   grounding, but it does not guarantee a correct answer: the model can still misread a source, so check the citation.</div>`;
+  $('rag').querySelectorAll('a.cite').forEach(a=>a.onclick=(e)=>{e.preventDefault();
+    document.querySelectorAll('.chunk.sent').forEach(x=>x.style.outline='');
+    const t=$('src'+a.dataset.s); t.style.outline='3px solid #C9821B'; t.scrollIntoView({behavior:'smooth',block:'center'});});
+};
+function vac(){
+  const t=+$('thr').value; $('thrv').textContent=t.toFixed(2);
+  const kept=D.vacRank.filter(x=>x.sim>=t && x.roles.some(r=>r==='employee'||r==='soc')).slice(0,3);
+  $('vacOut').innerHTML=D.vacRank.map(x=>{const ok=x.sim>=t, see=x.roles.some(r=>r==='employee'||r==='soc');
+    return `<div class="chunk ${ok&&see?'sent':'dim'}"><b>${esc(x.id)}</b> similarity ${x.sim.toFixed(2)}
+    ${see?'':'<span class="pill red">ana may not see this</span>'} <div class="bar ${ok?'':'off'}" style="width:${Math.max(4,x.sim*100*1.6)}%"></div></div>`;}).join('');
+  if(!kept.length) fb('fbV','good','<b>Answer:</b> I could not find this in the documents you can access. <i>(nothing was sent to the AI: no guess)</i> - correct, our documents have no vacation policy.');
+  else fb('fbV','no',`<b>Threshold too low.</b> ${kept.length} weak chunk(s) would be sent (the top one is the emergency leave policy). The model may now answer the vacation question with emergency-leave rules - a confident wrong answer with a citation. Keep the threshold, and test it with real questions.`);
+}
+$('thr').oninput=vac; vac();
+let dright=0, ddone=0;
+$('dec').innerHTML=D.decide.map((d,i)=>`<div style="margin:10px 0"><b>${i+1}. ${esc(d[0])}</b><br><span id="do${i}">`+
+  D.opts.map((o,j)=>`<button class="ghost small" data-i="${i}" data-j="${j}">${esc(o)}</button>`).join('')+`</span><div class="fb" id="df${i}"></div></div>`).join('');
+$('dec').querySelectorAll('button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,j=+b.dataset.j,d=D.decide[i];
+  document.querySelectorAll(`#do${i} button`).forEach(x=>x.disabled=true); b.classList.add('chosen'); ddone++; if(j===d[1]) dright++;
+  fb('df'+i, j===d[1]?'good':'no', (j===d[1]?'<span class="ok">Yes.</span> ':`<span class="bad">Better: ${esc(D.opts[d[1]])}.</span> `)+esc(d[2]));
+  if(ddone===D.decide.length) $('decS').textContent=`Score: ${dright} of ${D.decide.length}`;});
+mcq('quiz',[
+ {q:'Why can the model alone not answer "how do I apply for emergency leave at OUR company"?',opts:['It is too small','It has never seen our HR policy, so anything specific is a guess','Emergency leave is a sensitive topic'],a:1,why:'A model knows only its training data. Our policy, form names and deadlines were never in it.'},
+ {q:'What does RAG change?',opts:['It retrains the model on our documents','It retrieves the relevant pieces of our documents at question time and puts them in the prompt','It makes the model always correct'],a:1,why:'Retrieve, augment, generate. No retraining; change a document and the next answer uses it.'},
+ {q:'A RAG answer cites [S1]. What should you still do for an important decision?',opts:['Nothing, citations prove it is right','Open S1 and check the answer matches it','Ask the model if it is sure'],a:1,why:'RAG improves grounding but does not guarantee correctness. The citation is how you verify.'},
+]);
+
+</script>
+</body></html>

@@ -1,0 +1,21 @@
+flowchart TB
+    subgraph S1[" "]
+        direction LR
+        U["User question<br/>--user ana"] --> ID["Roles from the<br/>TRUSTED directory"]
+        U --> QE["Embed the question<br/>(all-minilm)"]
+        ID --> F["Filtered similarity search<br/>SQL: role IN user roles<br/>AND residency allowed<br/>then cosine top-k"]
+        QE --> F
+        DB[("vectors.db")] --> F
+        F --> GATE{"Best similarity<br/>at least 0.30?"}
+        GATE -- no --> NA["'I could not find this'<br/>no AI call"]
+    end
+    subgraph S2[" "]
+        direction LR
+        Q2["Hold back documents<br/>with instructions<br/>aimed at the AI"] --> CTX["Build the prompt:<br/>rules + numbered<br/>source tags"]
+        CTX --> LLM["llama3.1:8b<br/>local, CPU"]
+        LLM --> ANS["Answer with [S1]<br/>citations +<br/>Sources list"]
+        ANS --> AUD["rag_audit.log<br/>who, which chunks<br/>no question text"]
+    end
+    GATE -- yes --> Q2
+    style S1 fill:#FFFFFF,stroke:#FFFFFF
+    style S2 fill:#FFFFFF,stroke:#FFFFFF

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulation 3 - RAG tradeoffs</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;--blue-l:#E7EEF6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+header .wrap>div{flex:1}
+header svg{flex:none}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px;font-family:Cambria,Georgia,serif}
+header p{margin:0;color:#D5E3F0}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy);font-family:Cambria,Georgia,serif}
+.card h3{margin:14px 0 6px;font-size:16px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+.soc{background:var(--blue-l);border-left:4px solid var(--navy);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button.small{padding:4px 10px;font-size:14px}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;outline:3px solid var(--amber)}
+select{font:inherit;padding:6px 8px;border-radius:6px;border:1px solid var(--line);max-width:100%}
+label.inl{display:inline-flex;align-items:center;gap:6px;margin:4px 14px 4px 0}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+pre.term{background:#0F1B28;color:#E6EDF3;padding:12px 14px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.45;white-space:pre}
+pre.term .cmd{color:#F2B655}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;background:var(--teal-l);color:var(--teal);font-weight:600;margin:1px 2px}
+.pill.red{background:var(--red-l);color:var(--red)}.pill.amber{background:var(--amber-l);color:var(--amber)}
+.pill.navy{background:var(--blue-l);color:var(--navy)}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;font-size:15px}
+th{background:#EEF2F6}
+.scroll{overflow-x:auto}
+.bar{height:10px;background:var(--teal);border-radius:5px}
+.bar.off{background:#C9D2DC}.bar.red{background:var(--red)}
+.chunk{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px;background:#fff}
+.chunk.leak{border-color:var(--red);background:var(--red-l)}
+.chunk.sent{border-color:var(--teal);background:var(--teal-l)}
+.chunk.dim{opacity:.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.steps button{margin:2px 4px 2px 0}
+nav.pager{max-width:1000px;margin:0 auto;padding:0 16px 10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+nav.pager a{color:var(--navy);font-weight:600}
+footer{max-width:1000px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:700px){header h1{font-size:21px}.card{padding:14px}.grid2{grid-template-columns:1fr}label.inl{display:flex;flex-wrap:wrap;margin-right:0}label.inl select{width:100%}}
+</style></head>
+<body>
+<header><div class="wrap"><div><small>AI Bootcamp - Module 4 - Section 4.3</small><h1>Simulation 3 - RAG tradeoffs</h1><p>Chunk size, overlap, top-k, keyword vs vector vs hybrid, cost and freshness - measured on the real Lab 4 data.</p></div><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" role="img" aria-label="Module 4 logo" viewBox="0 0 512 512"><circle cx="256" cy="256" r="250" fill="#213A55" stroke="#7F9AB5" stroke-width="6"/><circle cx="256" cy="256" r="172" fill="#0E8C7E"/><svg x="175.5" y="164.0" width="161.0" height="184.0" viewBox="0 0 448 512" fill="#FFFFFF"><path d="M448 73.143v45.714C448 159.143 347.667 192 224 192S0 159.143 0 118.857V73.143C0 32.857 100.333 0 224 0s224 32.857 224 73.143zM448 176v102.857C448 319.143 347.667 352 224 352S0 319.143 0 278.857V176c48.125 33.143 136.208 48.572 224 48.572S399.874 209.143 448 176zm0 160v102.857C448 479.143 347.667 512 224 512S0 479.143 0 438.857V336c48.125 33.143 136.208 48.572 224 48.572S399.874 369.143 448 336z"/></svg><circle cx="395" cy="395" r="79" fill="#C9821B" stroke="#0F2A44" stroke-width="12"/><svg x="360.0" y="355.0" width="70.0" height="80.0" viewBox="0 0 448 512" fill="#FFFFFF"><path d="M400 224h-24v-72C376 68.2 307.8 0 224 0S72 68.2 72 152v72H48c-26.5 0-48 21.5-48 48v192c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V272c0-26.5-21.5-48-48-48zm-104 0H152v-72c0-39.7 32.3-72 72-72s72 32.3 72 72v72z"/></svg></svg></div></header>
+<main>
+
+<div class="card">
+  <h2>Part A - Tune the retriever and measure</h2>
+  <div class="analogy"><b>Think of it like...</b> packing a bag for a trip. Pack too little (small chunks, top-1) and you
+  forget something you need. Pack everything (huge chunks, top-5) and the bag is heavy, slow and full of things you do
+  not need. Measure what you actually used.</div>
+  <div class="how">These are the <b>real results</b> of <span class="mono">python experiments.py</span> on the Lab 4
+  documents: 14 test questions, each with the fact a correct answer needs. <b>fact@k</b> = how many questions got that
+  fact into the retrieved chunks.</div>
+  <label class="inl">Chunk size: <select id="size"><option>150</option><option selected>450</option><option>900</option></select> characters</label>
+  <label class="inl">Top-k: <select id="k"><option>1</option><option selected>3</option><option>5</option></select></label>
+  <label class="inl">Search: <select id="mode"><option value="vector">vector (meaning)</option><option value="keyword">keyword (BM25)</option><option value="hybrid">hybrid (both)</option></select></label>
+  <div id="res"></div>
+</div>
+
+<div class="card">
+  <h2>Part B - Chunk overlap is not free, and not automatically better</h2>
+  <div id="ov"></div>
+</div>
+
+<div class="card">
+  <h2>Part C - What would you change?</h2>
+  <div id="dec"></div><p class="score" id="decS"></p>
+</div>
+
+<div class="card">
+  <h2>Part D - Local or hosted model?</h2>
+  <div class="scroll"><table>
+   <tr><th></th><th>Local (Ollama on your VM, as in Lab 4)</th><th>Hosted API (cloud provider)</th></tr>
+   <tr><td>Where data goes</td><td>Stays on the VM</td><td>Leaves your network; check contract, region, retention</td></tr>
+   <tr><td>Cost</td><td>No per-token cost; you pay for the server</td><td>Per token (Module 3); grows with top-k and chunk size</td></tr>
+   <tr><td>Speed on a CPU VM</td><td>Often 30 to 120 s per answer</td><td>Usually a few seconds</td></tr>
+   <tr><td>Answer quality</td><td>Good with small models (8B); weaker reasoning</td><td>Usually stronger models</td></tr>
+   <tr><td>Fits local-only data</td><td>Yes</td><td>No - hold it back (Section 4.4)</td></tr>
+  </table></div>
+  <div class="soc"><b>In the SOC:</b> playbooks and incident notes with host names may be local-only - a local model can use
+  them. <b>In DevOps:</b> public runbooks can go to a faster hosted model if the contract allows it.</div>
+</div>
+
+<div class="card"><h2>Check yourself</h2><div id="quiz"></div></div>
+
+</main>
+<nav class="pager"><span><a href="sim2_pipeline.html">&larr; Simulation 2</a></span><a href="index.html">All simulations</a><span><a href="sim4_access_control.html">Simulation 4 - Security &rarr;</a></span></nav>
+<footer>AI Bootcamp - Module 4: Grounding AI in internal data. Works offline in any browser. No real AI is called: retrieval results were computed with the real Lab 4 code and the all-minilm embedding model; AI answers are examples. All data is fictional.</footer>
+<script>
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+function fb(id,cls,html){const e=$(id);e.className='fb show '+cls;e.innerHTML=html;}
+function mcq(containerId, items, onScore){
+  // items: [{q, opts:[...], a:index, why:"..."}]
+  const box=$(containerId); let answered=0, right=0;
+  box.innerHTML=items.map((it,i)=>`<div style="margin:12px 0"><b>${i+1}. ${esc(it.q)}</b><div id="${containerId}_o${i}">`+
+    it.opts.map((o,j)=>`<button class="ghost" data-i="${i}" data-j="${j}">${esc(o)}</button>`).join('')+
+    `</div><div class="fb" id="${containerId}_f${i}"></div></div>`).join('')+
+    `<p class="score" id="${containerId}_s"></p>`;
+  box.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    const i=+b.dataset.i, j=+b.dataset.j, it=items[i];
+    box.querySelectorAll(`#${containerId}_o${i} button`).forEach(x=>{x.disabled=true;});
+    b.classList.add('chosen'); answered++; if(j===it.a) right++;
+    fb(`${containerId}_f${i}`, j===it.a?'good':'no', (j===it.a?'<span class="ok">Correct.</span> ':'<span class="bad">Not quite.</span> Answer: <b>'+esc(it.opts[it.a])+'</b>. ')+esc(it.why));
+    if(answered===items.length){$(`${containerId}_s`).textContent=`Score: ${right} of ${items.length}`; if(onScore) onScore(right);}
+  }));
+}
+
+const D={"exp":{"150|1|vector":{"facts":7,"tokens":31,"misses":["How do I apply for emergency leave?","My father is in the hospital. How many paid days off can I take?","When does the CAB meet?","When should I roll back a release?","How long can a Tenable risk exception last?","How fast must critical vulnerabilities be fixed?","What do we do in the first 15 minutes of a ransomware attack?"],"chunks":92},"150|1|keyword":{"facts":10,"tokens":35,"misses":["How do I apply for emergency leave?","When should I roll back a release?","How long can a Tenable risk exception last?","How fast must critical vulnerabilities be fixed?"],"chunks":92},"150|1|hybrid":{"facts":9,"tokens":34,"misses":["How do I apply for emergency leave?","When should I roll back a release?","How long can a Tenable risk exception last?","How fast must critical vulnerabilities be fixed?","What do we do in the first 15 minutes of a ransomware attack?"],"chunks":92},"150|3|vector":{"facts":11,"tokens":73,"misses":["When does the CAB meet?","When should I roll back a release?","What do we do in the first 15 minutes of a ransomware attack?"],"chunks":92},"150|3|keyword":{"facts":11,"tokens":80,"misses":["How do I apply for emergency leave?","How long can a Tenable risk exception last?","How fast must critical vulnerabilities be fixed?"],"chunks":92},"150|3|hybrid":{"facts":14,"tokens":82,"misses":[],"chunks":92},"150|5|vector":{"facts":13,"tokens":110,"misses":["When does the CAB meet?"],"chunks":92},"150|5|keyword":{"facts":14,"tokens":126,"misses":[],"chunks":92},"150|5|hybrid":{"facts":14,"tokens":131,"misses":[],"chunks":92},"450|1|vector":{"facts":11,"tokens":68,"misses":["When does the CAB meet?","How fast must critical vulnerabilities be fixed?","What do we do in the first 15 minutes of a ransomware attack?"],"chunks":31},"450|1|keyword":{"facts":12,"tokens":73,"misses":["How long can a Tenable risk exception last?","How fast must critical vulnerabilities be fixed?"],"chunks":31},"450|1|hybrid":{"facts":12,"tokens":74,"misses":["How long can a Tenable risk exception last?","How fast must critical vulnerabilities be fixed?"],"chunks":31},"450|3|vector":{"facts":13,"tokens":172,"misses":["When does the CAB meet?"],"chunks":31},"450|3|keyword":{"facts":13,"tokens":194,"misses":["How fast must critical vulnerabilities be fixed?"],"chunks":31},"450|3|hybrid":{"facts":14,"tokens":199,"misses":[],"chunks":31},"450|5|vector":{"facts":13,"tokens":250,"misses":["When does the CAB meet?"],"chunks":31},"450|5|keyword":{"facts":14,"tokens":312,"misses":[],"chunks":31},"450|5|hybrid":{"facts":14,"tokens":298,"misses":[],"chunks":31},"900|1|vector":{"facts":10,"tokens":105,"misses":["My father is in the hospital. How many paid days off can I take?","What is form HR-F-12 for?","When does the CAB meet?","What is the SEC-EXC queue used for?"],"chunks":18},"900|1|keyword":{"facts":13,"tokens":153,"misses":["How fast must critical vulnerabilities be fixed?"],"chunks":18},"900|1|hybrid":{"facts":14,"tokens":154,"misses":[],"chunks":18},"900|3|vector":{"facts":11,"tokens":238,"misses":["What is form HR-F-12 for?","When does the CAB meet?","What is the SEC-EXC queue used for?"],"chunks":18},"900|3|keyword":{"facts":14,"tokens":354,"misses":[],"chunks":18},"900|3|hybrid":{"facts":14,"tokens":329,"misses":[],"chunks":18},"900|5|vector":{"facts":11,"tokens":265,"misses":["What is form HR-F-12 for?","When does the CAB meet?","What is the SEC-EXC queue used for?"],"chunks":18},"900|5|keyword":{"facts":14,"tokens":484,"misses":[],"chunks":18},"900|5|hybrid":{"facts":14,"tokens":383,"misses":[],"chunks":18},"overlap0":{"facts":11,"chunks":92,"chars":9072,"misses":["When does the CAB meet?","When should I roll back a release?","What do we do in the first 15 minutes of a ransomware attack?"]},"overlap60":{"facts":10,"chunks":96,"chars":13166,"misses":["What is form HR-F-12 for?","When does the CAB meet?","When should I roll back a release?","What do we do in the first 15 minutes of a ransomware attack?"]}},"eval":[{"q":"How do I apply for emergency leave?","doc":"HR-001","fact":"HR-F-12"},{"q":"My father is in the hospital. How many paid days off can I take?","doc":"HR-001","fact":"3 working days"},{"q":"What is form HR-F-12 for?","doc":"HR-001","fact":"HR-F-12"},{"q":"When does the CAB meet?","doc":"ITOPS-001","fact":"Tuesday at 14:00"},{"q":"Can I deploy to production on a Friday?","doc":"DEVOPS-001","fact":"Fridays"},{"q":"When should I roll back a release?","doc":"DEVOPS-002","fact":"1 percent"},{"q":"How long can a Tenable risk exception last?","doc":"SEC-003","fact":"90 days"},{"q":"Which host has CVE-2024-3400?","doc":"SEC-002","fact":"web-prod-03"},{"q":"How fast must critical vulnerabilities be fixed?","doc":"SEC-002","fact":"15 days"},{"q":"My account is locked. How long until it unlocks?","doc":"GEN-001","fact":"30 minutes"},{"q":"The VPN shows error 809. What should I do?","doc":"GEN-002","fact":"809"},{"q":"What do we do in the first 15 minutes of a ransomware attack?","doc":"SEC-001","fact":"isolate"},{"q":"When are the servers patched?","doc":"ITOPS-002","fact":"second Saturday"},{"q":"What is the SEC-EXC queue used for?","doc":"SEC-003","fact":"SEC-EXC"}],"allTokens":2319};
+
+function show(){
+  const s=$('size').value,k=$('k').value,m=$('mode').value, e=D.exp[`${s}|${k}|${m}`];
+  const cost=(t)=>(t*30000*3/1e6).toFixed(2);
+  const best=e.facts===14;
+  $('res').innerHTML=`<div class="grid2" style="margin-top:10px">
+   <div class="chunk ${best?'sent':''}"><div class="score">fact@${k}: ${e.facts} of 14</div><div class="bar ${best?'':'red'}" style="width:${e.facts/14*100}%"></div>
+     <p style="margin:6px 0 0">Chunks in the index: <b>${e.chunks}</b><br>Average tokens sent per question: <b>${e.tokens}</b><br>
+     Example hosted cost (USD 3 per 1M input tokens, 1,000 questions a day): <b>USD ${cost(e.tokens)}</b>/month for retrieved text.<br>
+     Pasting all documents instead: about ${D.allTokens.toLocaleString()} tokens = USD ${cost(D.allTokens)}/month.</p></div>
+   <div class="chunk"><b>Missed questions</b>${e.misses.length?'<ul style="margin:6px 0 0;padding-left:20px">'+e.misses.map(q=>`<li>${esc(q)}</li>`).join('')+'</ul>':'<p class="ok">none - every needed fact was retrieved</p>'}</div></div>
+   <div class="fb show ${best?'good':'mid'}">${hint(s,k,m,e)}</div>`;
+}
+function hint(s,k,m,e){
+  if(m==='vector'&&e.misses.some(q=>q.includes('CAB'))) return '<b>Vector search misses "CAB":</b> an acronym carries little meaning for a small embedding model. Keyword or hybrid search finds the exact word.';
+  if(s==='150') return '<b>Small chunks:</b> cheap, but facts get cut off from their context, so more questions miss.';
+  if(s==='900') return '<b>Big chunks:</b> each chunk mixes several topics, so its vector is blurry and the right chunk ranks lower; you also send more tokens.';
+  if(k==='1') return '<b>Top-1:</b> cheapest, but one wrong first place and the answer is gone.';
+  if(k==='5') return '<b>Top-5:</b> more facts found, but more tokens and more unrelated text for the model to ignore.';
+  return e.facts===14?'<b>Best balance here:</b> medium chunks, top-3, hybrid search. Your best settings depend on your documents - measure, do not guess.':'Try hybrid search.';
+}
+['size','k','mode'].forEach(id=>$(id).onchange=show); show();
+const o0=D.exp.overlap0,o60=D.exp.overlap60;
+$('ov').innerHTML=`<table><tr><th>Chunk size 150</th><th>Chunks</th><th>Stored characters</th><th>fact@3</th></tr>
+ <tr><td>Overlap 0</td><td>${o0.chunks}</td><td>${o0.chars.toLocaleString()}</td><td>${o0.facts}/14</td></tr>
+ <tr><td>Overlap 60 characters</td><td>${o60.chunks}</td><td>${o60.chars.toLocaleString()}</td><td>${o60.facts}/14</td></tr></table>
+ <div class="fb show mid">Overlap stored <b>${Math.round((o60.chars/o0.chars-1)*100)}% more text</b> and did not help here: our chunker already
+ keeps whole paragraphs together, and near-duplicate chunks took top-k places from other chunks. Overlap helps when a
+ chunker cuts in the middle of sentences (fixed-size chunking). Test it on your data before you pay for it.</div>`;
+const DEC=[
+ ['SOC analysts search exact IDs like CVE-2024-3400 and SEC-EXC, and vector search misses them.',['Larger chunks','Hybrid search','Bigger chat model'],1,'Exact codes and acronyms are keyword territory. Hybrid keeps meaning search and adds exact matches.'],
+ ['Answers on the CPU VM take too long; prompts carry 5 large chunks.',['Lower top-k or chunk size','Add overlap','Turn off the access filter'],0,'Fewer input tokens = faster prefill on a CPU (Module 0) and lower cost. Never trade security for speed.'],
+ ['HR changed the policy yesterday; the assistant still cites the old rule.',['Fine-tune the model','Re-index (run ingest.py), and schedule it','Raise top-k'],1,'Freshness is an indexing problem. Lab 4 v2 even refuses to answer from a stale index.'],
+ ['The right chunk is retrieved, but the answer misreads it.',['A retrieval problem','A generation problem: prompt, model or temperature','A residency problem'],1,'Retrieval quality and generation quality are different. Check what was sent (--dry-run) before blaming the search.'],
+ ['DevOps questions need a whole procedure that is split over 3 small chunks.',['Smaller chunks','Somewhat larger chunks or a higher top-k','Keyword search only'],1,'Keep a procedure together, or retrieve its neighbours. Then measure again.'],
+];
+let dr=0,dd=0;
+$('dec').innerHTML=DEC.map((d,i)=>`<div style="margin:10px 0"><b>${i+1}. ${esc(d[0])}</b><br><span id="do${i}">`+d[1].map((o,j)=>`<button class="ghost small" data-i="${i}" data-j="${j}">${esc(o)}</button>`).join('')+`</span><div class="fb" id="df${i}"></div></div>`).join('');
+$('dec').querySelectorAll('button').forEach(b=>b.onclick=()=>{const i=+b.dataset.i,j=+b.dataset.j,d=DEC[i];
+ document.querySelectorAll(`#do${i} button`).forEach(x=>x.disabled=true);b.classList.add('chosen');dd++;if(j===d[2])dr++;
+ fb('df'+i,j===d[2]?'good':'no',(j===d[2]?'<span class="ok">Yes.</span> ':`<span class="bad">Better: ${esc(d[1][d[2]])}.</span> `)+esc(d[3]));
+ if(dd===DEC.length)$('decS').textContent=`Score: ${dr} of ${DEC.length}`;});
+mcq('quiz',[
+ {q:'What does a larger top-k buy you, and what does it cost?',opts:['More recall; more tokens, cost, latency and noise','Better security','Nothing'],a:0,why:'Every extra chunk is more input tokens and more unrelated text the model must ignore.'},
+ {q:'Why does Lab 4 have a minimum similarity (0.30)?',opts:['To save disk space','So weak matches are dropped and the assistant says it could not find the answer instead of guessing','To make search faster'],a:1,why:'Relevance versus unnecessary context: no relevant chunk, no AI call.'},
+ {q:'Your test set shows 13 of 14 with vector search and 14 of 14 with hybrid. What do you do?',opts:['Pick hybrid and keep the test set to re-check after every change','Pick vector because embeddings are modern','Stop testing'],a:0,why:'Measure, decide, and re-measure when documents, chunking or models change.'},
+]);
+
+</script>
+</body></html>
