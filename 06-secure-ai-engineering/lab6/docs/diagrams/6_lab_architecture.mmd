@@ -1,0 +1,18 @@
+flowchart TB
+  SM[system_model.py<br/>the system as data]
+  SM --> TM[threat_model.py]
+  SM --> OW[owasp.py]
+  SM --> DP[deployment.py]
+  CT[controls.py<br/>+ evidence test ids]
+  TM --> BD[build_docs.py]
+  OW --> BD
+  DP --> BD
+  CT --> BD
+  CT --> CM[compliance.py] --> BD
+  BD --> DOC[[Threat Model &<br/>Control Document<br/>MD + HTML]]
+  CT -.-> L5[link_lab5.py<br/>runs Lab 5 tests]
+  L5 -.->|live evidence| DOC
+  TST[tests/test_lab6.py<br/>traceability guard]
+  classDef doc fill:#E7EEF6,stroke:#0F2A44,color:#0F2A44,stroke-width:2px;
+  classDef guard fill:#E2F2E8,stroke:#2E7D4F,color:#1E5631;
+  class DOC doc; class TST,L5 guard;

@@ -1,0 +1,4 @@
+# Lab 5 needs NO third-party packages to run: only the Python standard library + Ollama.
+# These two are for Phase 6 (testing and scanning). Verified on Python 3.9.25.
+pytest==8.4.2
+bandit==1.8.6

@@ -1,0 +1,15 @@
+flowchart LR
+    subgraph W["Your Windows laptop"]
+        CMD["Command Prompt<br/>ssh and scp (built in)"]
+    end
+    subgraph VM["Module 0 VM in OCI: Oracle Linux 9, CPU only"]
+        direction LR
+        LAB["~/lab5<br/>Python 3.9 + venv<br/>standard library only"]
+        OLL["Ollama on 127.0.0.1:11434<br/>llama3.1:8b (tool calling)"]
+        MCP["mcp_server.py<br/>read-only tools (stdio)"]
+        ST[("state/ + agent_audit.log")]
+        LAB <--> OLL
+        LAB <--> MCP
+        LAB --> ST
+    end
+    CMD -- "ssh" --> LAB

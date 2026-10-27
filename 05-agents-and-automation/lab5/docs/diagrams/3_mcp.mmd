@@ -1,0 +1,15 @@
+flowchart LR
+    subgraph CLIENT["AI app / agent (MCP client)"]
+        C["initialize<br/>tools/list<br/>tools/call"]
+    end
+    subgraph SERVER["MCP server (mcp_server.py)"]
+        direction TB
+        L["Exposes ONLY<br/>read-only tools<br/>(its own allowlist)"]
+        X["disable_account,<br/>send_email<br/>NOT exposed"]
+    end
+    C -- "JSON-RPC over stdio" --> L
+    C -. "refused" .-> X
+    note["One standard protocol, so the same tool<br/>server works with any agent or app."]
+    L --- note
+    classDef bad fill:#FBE6E4,stroke:#B3261E,color:#0F2A44
+    class X bad

@@ -1,0 +1,14 @@
+flowchart TB
+    P["1. Access to<br/>PRIVATE DATA<br/>(logs, tickets, CMDB)"]
+    U["2. Exposure to<br/>UNTRUSTED CONTENT<br/>(alert comments, web)"]
+    E["3. Ability to<br/>COMMUNICATE OUT<br/>(send_email, web request)"]
+    P --> R
+    U --> R
+    E --> R
+    R{"All three at once?"}
+    R -- "yes" --> X["EXFILTRATION is possible:<br/>injected text makes the agent<br/>send private data outside"]
+    R -- "remove any one" --> S["Risk downgraded:<br/>v2 gives the triage agent<br/>NO external tool"]
+    classDef bad fill:#FBE6E4,stroke:#B3261E,color:#0F2A44
+    classDef good fill:#E6F0E4,stroke:#2E7D32,color:#0F2A44
+    class X bad
+    class S good

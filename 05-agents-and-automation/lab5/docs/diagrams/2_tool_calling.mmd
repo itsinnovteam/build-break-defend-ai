@@ -1,0 +1,12 @@
+flowchart LR
+    subgraph APP["Your code (the agent)"]
+        direction TB
+        S["1. Send task + tool list<br/>(name, description, schema)"]
+        D["3. OUR CODE runs the tool<br/>and returns the result"]
+    end
+    M["2. The model RETURNS a request:<br/>call lookup_ip_reputation(ip)<br/>- it never runs anything itself"]
+    S --> M
+    M --> D
+    D -- "result as data" --> M
+    classDef good fill:#E6F0E4,stroke:#2E7D32,color:#0F2A44
+    class D good

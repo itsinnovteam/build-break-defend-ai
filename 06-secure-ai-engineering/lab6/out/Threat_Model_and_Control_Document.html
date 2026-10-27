@@ -1,0 +1,257 @@
+<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><title>Threat Model & Control Document</title><style>body{font:15px/1.55 'Segoe UI',system-ui,Arial,sans-serif;color:#1C2733;max-width:960px;margin:0 auto;padding:28px 20px}
+h1{font-family:Cambria,Georgia,serif;color:#0F2A44;border-bottom:3px solid#0E8C7E;padding-bottom:8px}
+h2{font-family:Cambria,Georgia,serif;color:#0F2A44;margin-top:28px;border-bottom:1px solid#D8DEE6;padding-bottom:4px}
+h3{color:#0E8C7E;margin-top:18px}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13.5px}
+th,td{border:1px solid#D8DEE6;padding:6px 9px;text-align:left;vertical-align:top}
+th{background:#0F2A44;color:#fff}tr:nth-child(even) td{background:#F4F6F9}
+code{background:#EEF2F6;color:#7A3E00;padding:1px 5px;border-radius:4px;font-family:Consolas,monospace;font-size:12.5px}
+blockquote{background:#E3F2EF;border-left:4px solid#0E8C7E;margin:10px 0;padding:8px 14px;color:#214A42}
+li{margin:3px 0}</style></head><body><h1>Threat Model &amp; Control Document</h1>
+<p><strong>System:</strong> SOC Triage Agent (1.0 (Lab 5, defended / v2))  </p>
+<p><strong>Owner:</strong> Security Operations / Innovation Team  </p>
+<p><strong>Date:</strong> 2026-10-25  </p>
+<p><strong>Hosting:</strong> Self-hosted on an internal VM (Oracle Linux 9). Local open-weight model via Ollama. No data leaves the network.</p>
+
+<blockquote>Prepared for security review. Every control in this document is backed by an automated test in Lab 5 (see the Evidence column). Compliance clause references are representative; map them to your own framework as needed.</blockquote>
+
+<h2>1. Purpose and scope</h2>
+<p>Investigate a SOC alert using read-only tools and recommend an action for a human to approve.</p>
+
+<p>This document threat-models the agent, maps it to the OWASP LLM Top 10 and common compliance frameworks, records the deployment decision, and lists the controls with their evidence.</p>
+
+<h2>2. Data flow and trust boundaries</h2>
+<p><strong>Components</strong></p>
+
+<table><tr><th>ID</th><th>Component</th><th>Zone</th><th>Role</th></tr>
+<tr><td>C1</td><td>Operator / analyst</td><td>internal</td><td>The human who starts a triage and approves risky actions.</td></tr>
+<tr><td>C2</td><td>Agent loop (agent.py)</td><td>internal</td><td>Orchestrates think-act-observe; calls the trust boundary for every tool.</td></tr>
+<tr><td>C3</td><td>Trust boundary (handle_call)</td><td>internal</td><td>The one function that allows, denies or validates every tool call.</td></tr>
+<tr><td>C4</td><td>Local LLM (llama3.1:8b via Ollama)</td><td>model</td><td>Proposes tool calls and writes the final answer. Untrusted decision-maker.</td></tr>
+<tr><td>C5</td><td>Tools (toolkit.py) + MCP server</td><td>internal</td><td>The 8 SOC tools; the MCP server exposes only the read-only ones.</td></tr>
+<tr><td>C6</td><td>Local state (state/, audit log)</td><td>internal</td><td>Case notes, blocklist, outbox and the audit log - local files only.</td></tr>
+<tr><td>C7</td><td>Alert + ticket data (scenarios/)</td><td>internal</td><td>SOC alerts. Ticket COMMENTS may be written by outsiders - untrusted content.</td></tr>
+</table>
+
+<p><strong>Data flows</strong></p>
+
+<table><tr><th>Flow</th><th>From</th><th>To</th><th>Data</th><th>Untrusted?</th></tr>
+<tr><td>F1</td><td>Operator / analyst</td><td>Agent loop (agent.py)</td><td>Triage task (which alert)</td><td>no</td></tr>
+<tr><td>F2</td><td>Agent loop (agent.py)</td><td>Local LLM (llama3.1:8b via Ollama)</td><td>Task + tool menu + observations so far</td><td>no</td></tr>
+<tr><td>F3</td><td>Local LLM (llama3.1:8b via Ollama)</td><td>Agent loop (agent.py)</td><td>A proposed tool call (name + arguments)</td><td>YES</td></tr>
+<tr><td>F4</td><td>Agent loop (agent.py)</td><td>Trust boundary (handle_call)</td><td>The proposed tool call, for a decision</td><td>YES</td></tr>
+<tr><td>F5</td><td>Trust boundary (handle_call)</td><td>Tools (toolkit.py) + MCP server</td><td>An allowed tool call</td><td>no</td></tr>
+<tr><td>F6</td><td>Tools (toolkit.py) + MCP server</td><td>Alert + ticket data (scenarios/)</td><td>Reads alert + ticket comments</td><td>no</td></tr>
+<tr><td>F7</td><td>Alert + ticket data (scenarios/)</td><td>Agent loop (agent.py)</td><td>Tool result incl. outsider-written comment</td><td>YES</td></tr>
+<tr><td>F8</td><td>Tools (toolkit.py) + MCP server</td><td>Local state (state/, audit log)</td><td>Writes case note / blocklist / audit entry</td><td>no</td></tr>
+<tr><td>F9</td><td>Trust boundary (handle_call)</td><td>Operator / analyst</td><td>Approval request for a write/external action</td><td>no</td></tr>
+</table>
+
+<p><strong>Trust boundaries</strong></p>
+
+<li><strong>TB1 Model boundary</strong> (crosses F3, F4): The LLM is untrusted: anything it proposes (F3) is a REQUEST, never an order. handle_call (C3) is the gate.</li>
+<li><strong>TB2 Untrusted-content boundary</strong> (crosses F7): Ticket comments can be written by outsiders. They arrive as tool results (F7) and must be treated as DATA, never instructions.</li>
+<li><strong>TB3 Action boundary</strong> (crosses F5, F8, F9): Any action that changes state or reaches outside needs least privilege, argument checks and (for write/extern) human approval.</li>
+
+<p><strong>Where untrusted input enters</strong> (the first question to answer):</p>
+
+<li><code>F3</code> Local LLM (llama3.1:8b via Ollama) -&gt; Agent loop (agent.py) - A proposed tool call (name + arguments)</li>
+<li><code>F4</code> Agent loop (agent.py) -&gt; Trust boundary (handle_call) - The proposed tool call, for a decision</li>
+<li><code>F7</code> Alert + ticket data (scenarios/) -&gt; Agent loop (agent.py) - Tool result incl. outsider-written comment</li>
+
+<h2>3. Threat model (STRIDE over the boundaries)</h2>
+<p>11 threats identified: <strong>9 mitigated</strong>, 2 not applicable, <strong>0 open</strong>.</p>
+
+<table><tr><th>Threat</th><th>STRIDE</th><th>Target</th><th>Description</th><th>Decision</th><th>Control</th></tr>
+<tr><td>T1</td><td>Tampering/Elevation</td><td>TB1 model boundary (F3)</td><td>The model is tricked into proposing a dangerous tool call (disable account, email out).</td><td>Mitigated</td><td>CTL-01</td></tr>
+<tr><td>T2</td><td>Elevation</td><td>TB2 untrusted content (F7)</td><td>A ticket comment carries injected instructions that the agent might obey.</td><td>Mitigated</td><td>CTL-04</td></tr>
+<tr><td>T3</td><td>Information disclosure</td><td>TB2 -&gt; outside</td><td>Private logs/CMDB are exfiltrated to an external address via a tool.</td><td>Mitigated</td><td>CTL-08</td></tr>
+<tr><td>T4</td><td>Elevation</td><td>TB3 action boundary (F5)</td><td>A write or external action runs without a human decision.</td><td>Mitigated</td><td>CTL-02</td></tr>
+<tr><td>T5</td><td>Tampering</td><td>TB3 action boundary (F5)</td><td>An approved action is aimed at the wrong target (critical account, internal IP).</td><td>Mitigated</td><td>CTL-03</td></tr>
+<tr><td>T6</td><td>Denial of service</td><td>C2 agent loop</td><td>A runaway or hijacked loop calls tools endlessly and exhausts the VM.</td><td>Mitigated</td><td>CTL-05</td></tr>
+<tr><td>T7</td><td>Repudiation</td><td>C6 state + audit</td><td>An action happens with no record of who/what/when, so it cannot be reviewed.</td><td>Mitigated</td><td>CTL-06</td></tr>
+<tr><td>T8</td><td>Elevation</td><td>C5 MCP server</td><td>A dangerous tool is reached through the MCP server directly.</td><td>Mitigated</td><td>CTL-07</td></tr>
+<tr><td>T9</td><td>Information disclosure</td><td>C4 model + data</td><td>Data leaves the network by being sent to a third-party model API.</td><td>Mitigated</td><td>CTL-09</td></tr>
+<tr><td>T10</td><td>Tampering</td><td>C4 model supply chain</td><td>The model is poisoned via training/fine-tuning data.</td><td>Not applicable</td><td>-</td></tr>
+<tr><td>T11</td><td>Information disclosure</td><td>system prompt</td><td>Secrets are extracted from the system prompt.</td><td>Not applicable</td><td>-</td></tr>
+</table>
+
+<h2>4. OWASP LLM Top 10 (2025) coverage</h2>
+<table><tr><th>ID</th><th>Risk</th><th>How this system is exposed</th><th>Controls</th></tr>
+<tr><td>LLM01</td><td>Prompt injection</td><td>A ticket comment written by an outsider tries to make the agent disable an account and email data out.</td><td>CTL-01, CTL-04, CTL-08, CTL-10</td></tr>
+<tr><td>LLM02</td><td>Sensitive information disclosure</td><td>The agent reads auth logs and CMDB data; a hijack could try to exfiltrate them.</td><td>CTL-06, CTL-08, CTL-09</td></tr>
+<tr><td>LLM03</td><td>Supply chain</td><td>Open-weight model and tools; we pin versions and host locally rather than call a third-party API.</td><td>CTL-07, CTL-09</td></tr>
+<tr><td>LLM04</td><td>Data and model poisoning</td><td>We do not train or fine-tune; the model is read-only and fixed, and reference data is internal and reviewed.</td><td>N/A by design</td></tr>
+<tr><td>LLM05</td><td>Improper output handling</td><td>A tool result could contain markup or instructions; acting on it blindly would be unsafe.</td><td>CTL-03, CTL-04</td></tr>
+<tr><td>LLM06</td><td>Excessive agency</td><td>The agent can call tools that disable accounts or email out - far more power than triage needs.</td><td>CTL-01, CTL-02, CTL-03, CTL-07</td></tr>
+<tr><td>LLM07</td><td>System prompt leakage</td><td>Our system prompt holds no secrets or credentials - only behavioural rules.</td><td>N/A by design</td></tr>
+<tr><td>LLM08</td><td>Vector and embedding weaknesses</td><td>This agent uses no vector store (that was Module 4); not applicable here, noted for completeness.</td><td>N/A by design</td></tr>
+<tr><td>LLM09</td><td>Misinformation</td><td>The agent could mis-rate an alert; a human approves every action and a deterministic path exists.</td><td>CTL-10</td></tr>
+<tr><td>LLM10</td><td>Unbounded consumption</td><td>An agent loop with no limit could call tools forever, a denial-of-service on the VM.</td><td>CTL-05</td></tr>
+</table>
+
+<p>Risks marked *N/A by design*: LLM04, LLM07, LLM08 - documented with rationale in the threat model (not unmanaged gaps).</p>
+
+<h2>5. Controls and evidence</h2>
+<p>Each control names the Lab 5 test that proves it works. Run <code>python link_lab5.py</code> to execute them live.</p>
+
+<h3>CTL-01 - Least privilege (tool allowlist)</h3>
+<li><strong>What:</strong> The agent may use only the tools its job needs. The triage job gets read-only tools plus add_case_note; nothing else can run.</li>
+<li><strong>Mechanism:</strong> <code>handle_call rejects any tool not in policy.allowlist (config.TRIAGE_ALLOWLIST).</code></li>
+<li><strong>OWASP:</strong> LLM06, LLM01</li>
+<li><strong>Compliance:</strong> NIST AI RMF MANAGE-2.2; ISO 42001 A.6.2.4; ISO 27001 A.8.2 (privileged access); SOC 2 CC6.1 / CC6.3</li>
+<li><strong>Evidence (tests):</strong> <code>test_triage_policy_blocks_tools_outside_the_allowlist</code>, <code>test_v2_never_runs_a_forbidden_tool_whatever_the_model_asks</code></li>
+
+<h3>CTL-02 - Human approval for impactful actions</h3>
+<li><strong>What:</strong> Any action that changes production or leaves the building waits for a person to approve before it runs.</li>
+<li><strong>Mechanism:</strong> <code>handle_call denies WRITE/EXTERN tools unless policy.approve() returns True (add_case_note is the only auto-allowed write).</code></li>
+<li><strong>OWASP:</strong> LLM06</li>
+<li><strong>Compliance:</strong> NIST AI RMF MANAGE-1.3; ISO 42001 A.9.2 (human oversight); ISO 27001 A.5.3; SOC 2 CC6.1</li>
+<li><strong>Evidence (tests):</strong> <code>test_write_tool_needs_approval</code>, <code>test_case_note_needs_no_approval</code></li>
+
+<h3>CTL-03 - Argument validation</h3>
+<li><strong>What:</strong> Even an approved action is checked: no disabling critical accounts, no external email, no blocking internal IPs.</li>
+<li><strong>Mechanism:</strong> <code>default_validate() runs inside handle_call before any tool executes.</code></li>
+<li><strong>OWASP:</strong> LLM06, LLM05</li>
+<li><strong>Compliance:</strong> NIST AI RMF MEASURE-2.6; ISO 42001 A.6.2.4; ISO 27001 A.8.28 (secure coding); SOC 2 CC8.1</li>
+<li><strong>Evidence (tests):</strong> <code>test_argument_check_refuses_disabling_a_critical_account</code>, <code>test_argument_check_refuses_external_email</code>, <code>test_argument_check_refuses_blocking_an_internal_ip</code></li>
+
+<h3>CTL-04 - Output handled as data, not orders</h3>
+<li><strong>What:</strong> Every tool result is wrapped in &lt;observation&gt; and treated as data to read, never as instructions. Injection attempts are detected and flagged.</li>
+<li><strong>Mechanism:</strong> <code>safety.wrap_observation() and safety.find_injection() applied to every observation in the defended agent.</code></li>
+<li><strong>OWASP:</strong> LLM01, LLM05</li>
+<li><strong>Compliance:</strong> NIST AI RMF MEASURE-2.7; ISO 42001 A.6.2.4; ISO 27001 A.8.28 (secure coding); SOC 2 CC6.8</li>
+<li><strong>Evidence (tests):</strong> <code>test_v2_wraps_tool_output_as_data</code>, <code>test_injection_is_detected_in_the_poisoned_alert</code>, <code>test_defused_tag_cannot_break_out_of_observation</code></li>
+
+<h3>CTL-05 - Loop limits (no runaway)</h3>
+<li><strong>What:</strong> Hard caps on steps and total tool calls stop a buggy or hijacked loop from running forever.</li>
+<li><strong>Mechanism:</strong> <code>config.MAX_STEPS and config.MAX_TOOL_CALLS enforced in agent.run().</code></li>
+<li><strong>OWASP:</strong> LLM10</li>
+<li><strong>Compliance:</strong> NIST AI RMF MANAGE-2.2; ISO 42001 A.6.2.6; ISO 27001 A.8.6 (capacity); SOC 2 A1.1</li>
+<li><strong>Evidence (tests):</strong> <code>test_step_limit_stops_a_runaway_loop</code>, <code>test_tool_call_limit_is_enforced</code></li>
+
+<h3>CTL-06 - Audit logging without secrets</h3>
+<li><strong>What:</strong> Every tool call is recorded - tool, risk, decision - with no arguments or results, so the log itself leaks nothing.</li>
+<li><strong>Mechanism:</strong> <code>agent.write_audit() writes agent_audit.log with metadata only.</code></li>
+<li><strong>OWASP:</strong> LLM02</li>
+<li><strong>Compliance:</strong> NIST AI RMF MEASURE-2.8; ISO 42001 A.6.2.8; ISO 27001 A.8.15 (logging); SOC 2 CC7.2</li>
+<li><strong>Evidence (tests):</strong> <code>test_audit_has_no_argument_or_result_text</code></li>
+
+<h3>CTL-07 - Least privilege at the server (MCP)</h3>
+<li><strong>What:</strong> The MCP server exposes only the four read-only tools. The dangerous tools are unreachable through it.</li>
+<li><strong>Mechanism:</strong> <code>mcp_server.py READ_ONLY allowlist; refuses tools/call for anything else.</code></li>
+<li><strong>OWASP:</strong> LLM06, LLM03</li>
+<li><strong>Compliance:</strong> NIST AI RMF MANAGE-2.2; ISO 42001 A.6.2.4; ISO 27001 A.8.2 (privileged access); SOC 2 CC6.3</li>
+<li><strong>Evidence (tests):</strong> <code>test_mcp_server_exposes_only_read_only_tools</code>, <code>test_mcp_server_refuses_a_tool_it_does_not_expose</code></li>
+
+<h3>CTL-08 - Break the lethal trifecta</h3>
+<li><strong>What:</strong> The triage agent has no external tool at all, so private data can never be exfiltrated even if the model is hijacked.</li>
+<li><strong>Mechanism:</strong> <code>send_email is not in TRIAGE_ALLOWLIST; the exfiltration leg is removed by design.</code></li>
+<li><strong>OWASP:</strong> LLM02, LLM01</li>
+<li><strong>Compliance:</strong> NIST AI RMF MAP-2.1; ISO 42001 A.5.2 (risk assessment); ISO 27001 A.8.12 (data leakage prevention); SOC 2 CC6.7</li>
+<li><strong>Evidence (tests):</strong> <code>test_v2_blocks_the_hijack_but_still_triages</code></li>
+
+<h3>CTL-09 - Local hosting / data residency</h3>
+<li><strong>What:</strong> The model and all data stay on an internal VM. No alert, log or PII is sent to any outside service.</li>
+<li><strong>Mechanism:</strong> <code>Ollama local model; tools act only on local files under state/; email domain allowlist is internal-only.</code></li>
+<li><strong>OWASP:</strong> LLM02, LLM03</li>
+<li><strong>Compliance:</strong> NIST AI RMF GOVERN-1.2; ISO 42001 A.7.2 (data management); ISO 27001 A.5.34 (privacy); SOC 2 C1.1 / P4.1</li>
+<li><strong>Evidence (tests):</strong> <code>test_argument_check_refuses_external_email</code></li>
+
+<h3>CTL-10 - Prefer the deterministic path</h3>
+<li><strong>What:</strong> When the steps are fixed, a plain script (no model) does the job - no injection surface at all.</li>
+<li><strong>Mechanism:</strong> <code>plain_vs_agent.py performs triage with zero model calls, deterministically.</code></li>
+<li><strong>OWASP:</strong> LLM01, LLM09</li>
+<li><strong>Compliance:</strong> NIST AI RMF MAP-1.1; ISO 42001 A.6.1.2; ISO 27001 A.8.25; SOC 2 CC8.1</li>
+<li><strong>Evidence (tests):</strong> <code>test_plain_triage_is_deterministic_and_uses_no_model</code></li>
+
+<h2>6. Deployment pattern decision</h2>
+<p>The most sensitive data handled is <strong>confidential</strong>. Recommended pattern: <strong>P4 Fully local / on-prem open-weight model (this lab)</strong>.</p>
+
+<blockquote>Confidential or regulated data that must not leave the network. Trade-off: You run and patch it; capacity is your own - the trade for full control.</blockquote>
+
+<table><tr><th>Pattern</th><th>Control over data</th><th>Up to sensitivity</th><th>Good for</th></tr>
+<tr><td>P4 Fully local / on-prem open-weight model (this lab)</td><td>highest</td><td>regulated</td><td>Confidential or regulated data that must not leave the network.</td></tr>
+<tr><td>P3 Private cloud / VPC-hosted open model</td><td>high</td><td>confidential</td><td>Confidential data that may live in your cloud tenancy.</td></tr>
+<tr><td>P2 Vendor API with data-protection contract (no training, region-locked)</td><td>medium</td><td>internal</td><td>Internal content where a contract and region lock are acceptable.</td></tr>
+<tr><td>P1 Public SaaS LLM API</td><td>low</td><td>public</td><td>Public, non-sensitive content; prototypes.</td></tr>
+</table>
+
+<h2>7. Compliance mapping</h2>
+<h3>NIST AI RMF</h3>
+<p>*US AI Risk Management Framework - functions GOVERN / MAP / MEASURE / MANAGE.* - 8 clauses touched.</p>
+
+<table><tr><th>Clause</th><th>Controls</th><th>Evidence tests</th></tr>
+<tr><td>GOVERN-1.2</td><td>CTL-09</td><td>1</td></tr>
+<tr><td>MANAGE-1.3</td><td>CTL-02</td><td>2</td></tr>
+<tr><td>MANAGE-2.2</td><td>CTL-01, CTL-05, CTL-07</td><td>6</td></tr>
+<tr><td>MAP-1.1</td><td>CTL-10</td><td>1</td></tr>
+<tr><td>MAP-2.1</td><td>CTL-08</td><td>1</td></tr>
+<tr><td>MEASURE-2.6</td><td>CTL-03</td><td>3</td></tr>
+<tr><td>MEASURE-2.7</td><td>CTL-04</td><td>3</td></tr>
+<tr><td>MEASURE-2.8</td><td>CTL-06</td><td>1</td></tr>
+</table>
+
+<h3>ISO 42001</h3>
+<p>*AI Management System standard - Annex A controls for responsible AI.* - 7 clauses touched.</p>
+
+<table><tr><th>Clause</th><th>Controls</th><th>Evidence tests</th></tr>
+<tr><td>A.5.2 (risk assessment)</td><td>CTL-08</td><td>1</td></tr>
+<tr><td>A.6.1.2</td><td>CTL-10</td><td>1</td></tr>
+<tr><td>A.6.2.4</td><td>CTL-01, CTL-03, CTL-04, CTL-07</td><td>10</td></tr>
+<tr><td>A.6.2.6</td><td>CTL-05</td><td>2</td></tr>
+<tr><td>A.6.2.8</td><td>CTL-06</td><td>1</td></tr>
+<tr><td>A.7.2 (data management)</td><td>CTL-09</td><td>1</td></tr>
+<tr><td>A.9.2 (human oversight)</td><td>CTL-02</td><td>2</td></tr>
+</table>
+
+<h3>ISO 27001</h3>
+<p>*Information security management - Annex A controls.* - 8 clauses touched.</p>
+
+<table><tr><th>Clause</th><th>Controls</th><th>Evidence tests</th></tr>
+<tr><td>A.5.3</td><td>CTL-02</td><td>2</td></tr>
+<tr><td>A.5.34 (privacy)</td><td>CTL-09</td><td>1</td></tr>
+<tr><td>A.8.12 (data leakage prevention)</td><td>CTL-08</td><td>1</td></tr>
+<tr><td>A.8.15 (logging)</td><td>CTL-06</td><td>1</td></tr>
+<tr><td>A.8.2 (privileged access)</td><td>CTL-01, CTL-07</td><td>4</td></tr>
+<tr><td>A.8.25</td><td>CTL-10</td><td>1</td></tr>
+<tr><td>A.8.28 (secure coding)</td><td>CTL-03, CTL-04</td><td>6</td></tr>
+<tr><td>A.8.6 (capacity)</td><td>CTL-05</td><td>2</td></tr>
+</table>
+
+<h3>SOC 2</h3>
+<p>*Trust Services Criteria (Security, Availability, Confidentiality, Privacy).* - 9 clauses touched.</p>
+
+<table><tr><th>Clause</th><th>Controls</th><th>Evidence tests</th></tr>
+<tr><td>A1.1</td><td>CTL-05</td><td>2</td></tr>
+<tr><td>C1.1 / P4.1</td><td>CTL-09</td><td>1</td></tr>
+<tr><td>CC6.1</td><td>CTL-02</td><td>2</td></tr>
+<tr><td>CC6.1 / CC6.3</td><td>CTL-01</td><td>2</td></tr>
+<tr><td>CC6.3</td><td>CTL-07</td><td>2</td></tr>
+<tr><td>CC6.7</td><td>CTL-08</td><td>1</td></tr>
+<tr><td>CC6.8</td><td>CTL-04</td><td>3</td></tr>
+<tr><td>CC7.2</td><td>CTL-06</td><td>1</td></tr>
+<tr><td>CC8.1</td><td>CTL-03, CTL-10</td><td>4</td></tr>
+</table>
+
+<h2>8. Data governance</h2>
+<table><tr><th>Data asset</th><th>Sensitivity</th><th>PII</th><th>Residency</th></tr>
+<tr><td>Alert metadata</td><td>internal</td><td>no</td><td>on-VM</td></tr>
+<tr><td>Authentication logs</td><td>confidential</td><td>yes</td><td>on-VM</td></tr>
+<tr><td>Asset owner / CMDB</td><td>confidential</td><td>yes</td><td>on-VM</td></tr>
+<tr><td>Ticket comments (may be outsider-written)</td><td>untrusted-input</td><td>no</td><td>on-VM</td></tr>
+<tr><td>Case notes + audit log</td><td>confidential</td><td>no</td><td>on-VM</td></tr>
+</table>
+
+<p>All data stays on the VM (residency: on-VM). No asset is sent to any external service.</p>
+
+<h2>9. Residual risk and sign-off</h2>
+<li>Threats: 9 mitigated, 2 not applicable, <strong>0 open</strong>.</li>
+<li>Accepted / not-applicable items carry a documented rationale (see section 3).</li>
+<li>Residual risk: the local model can still mis-rate an alert (LLM09); mitigated by mandatory human approval for any action and by the deterministic fallback path.</li>
+
+<table><tr><th>Role</th><th>Name</th><th>Decision</th><th>Date</th></tr>
+<tr><td>System owner</td><td>______________</td><td>______________</td><td>______</td></tr>
+<tr><td>Security reviewer / CISO</td><td>______________</td><td>Approve / Reject</td><td>______</td></tr>
+</table>
+</body></html>

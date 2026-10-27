@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MCP: a standard plug between agents and tools</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;--blue-l:#E7EEF6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+header .wrap>div{flex:1}
+header svg{flex:none}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px;font-family:Cambria,Georgia,serif}
+header p{margin:0;color:#D5E3F0}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy);font-family:Cambria,Georgia,serif}
+.card h3{margin:14px 0 6px;font-size:16px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+.soc{background:var(--blue-l);border-left:4px solid var(--navy);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button.small{padding:4px 10px;font-size:14px}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;outline:3px solid var(--amber)}
+select{font:inherit;padding:6px 8px;border-radius:6px;border:1px solid var(--line);max-width:100%}
+label.inl{display:inline-flex;align-items:center;gap:6px;margin:4px 14px 4px 0}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+pre.term{background:#0F1B28;color:#E6EDF3;padding:12px 14px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.45;white-space:pre}
+pre.term .cmd{color:#F2B655}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;background:var(--teal-l);color:var(--teal);font-weight:600;margin:1px 2px}
+.pill.red{background:var(--red-l);color:var(--red)}.pill.amber{background:var(--amber-l);color:var(--amber)}
+.pill.navy{background:var(--blue-l);color:var(--navy)}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;font-size:15px}
+th{background:#EEF2F6}
+.scroll{overflow-x:auto}
+.bar{height:10px;background:var(--teal);border-radius:5px}
+.bar.off{background:#C9D2DC}.bar.red{background:var(--red)}
+.chunk{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px;background:#fff}
+.chunk.leak{border-color:var(--red);background:var(--red-l)}
+.chunk.sent{border-color:var(--teal);background:var(--teal-l)}
+.chunk.dim{opacity:.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.steps button{margin:2px 4px 2px 0}
+nav.pager{max-width:1000px;margin:0 auto;padding:0 16px 10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+nav.pager a{color:var(--navy);font-weight:600}
+footer{max-width:1000px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:700px){header h1{font-size:21px}.card{padding:14px}.grid2{grid-template-columns:1fr}label.inl{display:flex;flex-wrap:wrap;margin-right:0}label.inl select{width:100%}}
+</style></head>
+<body>
+<header><div class="wrap"><div><small>AI Bootcamp - Module 5 - Section 3 - MCP</small><h1>MCP: a standard plug between agents and tools</h1><p>Discover tools, call them - and never expose the dangerous ones</p></div><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" role="img" aria-label="Module 5 logo" viewBox="0 0 512 512"><circle cx="256" cy="256" r="250" fill="#213A55" stroke="#7F9AB5" stroke-width="6"/><circle cx="256" cy="256" r="172" fill="#0E8C7E"/><svg x="164.0" y="182.4" width="184.0" height="147.2" viewBox="0 0 640 512" fill="#FFFFFF"><path d="M32,224H64V416H32A31.96166,31.96166,0,0,1,0,384V256A31.96166,31.96166,0,0,1,32,224Zm512-48V448a64.06328,64.06328,0,0,1-64,64H160a64.06328,64.06328,0,0,1-64-64V176a79.974,79.974,0,0,1,80-80H288V32a32,32,0,0,1,64,0V96H464A79.974,79.974,0,0,1,544,176ZM264,256a40,40,0,1,0-40,40A39.997,39.997,0,0,0,264,256Zm-8,128H192v32h64Zm96,0H288v32h64ZM456,256a40,40,0,1,0-40,40A39.997,39.997,0,0,0,456,256Zm-8,128H384v32h64ZM640,256V384a31.96166,31.96166,0,0,1-32,32H576V224h32A31.96166,31.96166,0,0,1,640,256Z"/></svg><circle cx="395" cy="395" r="79" fill="#C9821B" stroke="#0F2A44" stroke-width="12"/><svg x="355.0" y="355.0" width="80.0" height="80.0" viewBox="0 0 512 512" fill="#FFFFFF"><path d="M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C27.7 91.1 16 108.6 16 128c0 198.5 114.5 335.7 221.5 380.3 11.8 4.9 25.1 4.9 36.9 0C360.1 472.6 496 349.3 496 128c0-19.4-11.7-36.9-29.5-44.3zM256.1 446.3l-.1-381 175.9 73.3c-3.3 151.4-82.1 261.1-175.8 307.7z"/></svg></svg></div></header>
+<main>
+
+<div class="card">
+  <h2>MCP: one standard plug for tools</h2>
+  <p>Once you have tools, you need a tidy way to connect a model to them - ideally the same way
+  every time, so a tool built once works with any agent. <b>MCP (Model Context Protocol)</b> is
+  that standard. A small <b>server</b> offers a set of tools; a <b>client</b> (your agent) asks
+  what's on offer and calls them. They talk in plain JSON messages.</p>
+  <div class="analogy"><b>Analogy - USB-C.</b> Before USB-C, every device had its own charger.
+  Now one shape fits everything. MCP is the USB-C of tools: a tool that speaks MCP plugs into any
+  agent that speaks MCP, with no custom wiring.</div>
+  <div class="analogy"><b>Analogy - the waiter and the kitchen.</b> You never shout orders
+  straight into the kitchen. A waiter takes your order to a kitchen that only serves what's on
+  the menu. The MCP server is that waiter: it decides which dishes (tools) exist, and the kitchen
+  behind it stays out of reach.</div>
+  <div class="soc"><b>SOC:</b> a "SOC tools" MCP server exposes <span class="mono">get_alert</span>,
+  <span class="mono">search_logs</span>, <span class="mono">lookup_ip_reputation</span> -
+  read-only. <b>DevOps:</b> a "cluster" server exposes <span class="mono">get_pod_status</span>
+  and <span class="mono">list_deploys</span>, but <i>not</i> <span class="mono">delete_pod</span>.
+  <b>What a server leaves out is a security decision.</b></div>
+</div>
+
+<div class="card">
+  <h2>Talk to the Lab 5 MCP server</h2>
+  <p>This mirrors <span class="mono">python mcp_client.py</span>. First connect and list the
+  tools. Then try calling one - including a dangerous tool the server does not expose.</p>
+  <div id="mcp"></div>
+  <div class="fb" id="mend"></div>
+</div>
+
+<div class="card">
+  <h2>Least privilege at the server</h2>
+  <div class="how">The Lab 5 server exposes <b>only four read-only tools</b>. The dangerous ones
+  (<span class="mono">disable_account</span>, <span class="mono">send_email</span>,
+  <span class="mono">block_ip</span>) are <b>not reachable through MCP at all</b>. Even a fully
+  tricked model cannot call what the server never put on the menu. This is the same
+  "least privilege" idea as Module 1's safety rules and Module 4's data access - applied to
+  tools.</div>
+  <h3>Quick check</h3>
+  <div id="quiz3"></div>
+</div>
+
+</main>
+<nav class="pager"><span><a href="sim5_2_agent_loop.html">&larr; 2 The agent loop</a></span><a href="index.html">All simulations</a><span><a href="sim5_4_when_not.html">4 When not to use agents &rarr;</a></span></nav>
+<footer>AI Bootcamp - Module 5: Agents and automation. Works offline in any browser. No real AI is called: tool results and decisions come from the real Lab 5 code; AI answers are examples. All data is fictional.</footer>
+<script>
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+function fb(id,cls,html){const e=$(id);e.className='fb show '+cls;e.innerHTML=html;}
+function mcq(containerId, items, onScore){
+  // items: [{q, opts:[...], a:index, why:"..."}]
+  const box=$(containerId); let answered=0, right=0;
+  box.innerHTML=items.map((it,i)=>`<div style="margin:12px 0"><b>${i+1}. ${esc(it.q)}</b><div id="${containerId}_o${i}">`+
+    it.opts.map((o,j)=>`<button class="ghost" data-i="${i}" data-j="${j}">${esc(o)}</button>`).join('')+
+    `</div><div class="fb" id="${containerId}_f${i}"></div></div>`).join('')+
+    `<p class="score" id="${containerId}_s"></p>`;
+  box.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    const i=+b.dataset.i, j=+b.dataset.j, it=items[i];
+    box.querySelectorAll(`#${containerId}_o${i} button`).forEach(x=>{x.disabled=true;});
+    b.classList.add('chosen'); answered++; if(j===it.a) right++;
+    fb(`${containerId}_f${i}`, j===it.a?'good':'no', (j===it.a?'<span class="ok">Correct.</span> ':'<span class="bad">Not quite.</span> Answer: <b>'+esc(it.opts[it.a])+'</b>. ')+esc(it.why));
+    if(answered===items.length){$(`${containerId}_s`).textContent=`Score: ${right} of ${items.length}`; if(onScore) onScore(right);}
+  }));
+}
+
+
+
+const OFFERED=[
+ ["get_alert","Get a SOC alert and its ticket comments by alert id, e.g. A-1007."],
+ ["search_logs","Search authentication logs by user and/or source IP."],
+ ["get_asset_owner","Look up who owns a host or account in the CMDB."],
+ ["lookup_ip_reputation","Check an IP address against threat intel."]
+];
+function mcpStart(){
+  $("mcp").innerHTML='<button id="conn">Connect + list tools (tools/list)</button><div id="m1"></div>';
+  $("conn").onclick=()=>{
+    $("m1").innerHTML='<pre class="term"><span class="cmd">Connected to MCP server: '+
+      'lab5-soc-tools v1.0</span>\n\nTools this server offers (4):\n'+
+      OFFERED.map(t=>'  - '+t[0]+': '+esc(t[1])).join('\n')+'</pre>'+
+      '<p><label class="inl">Call a tool: <select id="tool">'+
+      OFFERED.map(t=>'<option value="'+t[0]+'">'+t[0]+'</option>').join('')+
+      '<option value="disable_account">disable_account (dangerous)</option></select></label> '+
+      '<button id="call">tools/call &rarr;</button></p><div id="m2"></div>';
+    $("call").onclick=()=>{
+      const t=$("tool").value;
+      if(t==="disable_account"){
+        $("m2").innerHTML='<pre class="term">Asking for a tool the server does NOT expose '+
+          '(disable_account) ...\n  <span style="color:#F2726F">refused: tool \'disable_account\' '+
+          'is not exposed by this server</span></pre>';
+        fb("mend","good","<b>Refused at the door.</b> The server never put disable_account on the "+
+          "menu, so it cannot be called over MCP - no matter who asks or how.");
+      } else {
+        const res=t==="lookup_ip_reputation"
+          ?'{"ip": "198.51.100.20", "risk_score": 92, "verdict": "malicious"}'
+          :t==="get_alert"?'{"alert_id":"A-1007","rule":"Brute force...","severity":"high"}'
+          :t==="get_asset_owner"?'{"asset":"laptop-20","owner":"j.cruz","team":"Finance"}'
+          :'{"matches": 3, "user": "m.reyes"}';
+        $("m2").innerHTML='<pre class="term">Calling '+t+' ...\n  result: '+esc(res)+'</pre>';
+        fb("mend","good","That tool is read-only and on the menu, so it runs and returns data. "+
+          "Try the dangerous tool to see the server refuse it.");
+      }
+    };
+  };
+}
+mcpStart();
+mcq("quiz3",[
+ {q:"What is MCP, in one line?",
+  opts:["A faster language model","A standard way for an agent (client) to discover and call tools a server offers","A database for logs"],
+  a:1,why:"One protocol, so a tool built once works with any agent that speaks MCP."},
+ {q:"The Lab 5 server exposes only 4 read-only tools. Why does that help security?",
+  opts:["It makes the server faster","Dangerous tools are not reachable through MCP at all, so a tricked model still cannot call them","It hides the logs"],
+  a:1,why:"Least privilege at the server: what you never expose cannot be abused."}
+]);
+
+</script>
+</body></html>

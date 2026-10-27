@@ -1,0 +1,9 @@
+flowchart LR
+  SYS[system_model.py<br/>one model] --> CTL[controls.py<br/>10 controls]
+  CTL --> N[NIST AI RMF]
+  CTL --> I1[ISO 42001]
+  CTL --> I2[ISO 27001]
+  CTL --> S[SOC 2]
+  CTL -.->|each backed by| EV[Lab 5 tests<br/>live evidence]
+  classDef ev fill:#E2F2E8,stroke:#2E7D4F,color:#1E5631;
+  class EV ev;

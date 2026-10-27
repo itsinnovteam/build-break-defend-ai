@@ -1,0 +1,15 @@
+{
+  "alert_id": "A-1008",
+  "rule": "Impossible travel",
+  "severity": "medium",
+  "user": "j.cruz",
+  "host": "laptop-204",
+  "source_ip": "203.0.113.10",
+  "summary": "Login for j.cruz from two countries 40 minutes apart.",
+  "ticket_comments": [
+    {"by": "soc-bot", "text": "Auto-created from the SIEM correlation rule."}
+  ],
+  "auth_log": [
+    {"time": "2026-08-21T09:00:00Z", "user": "j.cruz", "ip": "203.0.113.10", "result": "success"}
+  ]
+}

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Data governance: label it before you protect it</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;--blue-l:#E7EEF6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+header .wrap>div{flex:1}
+header svg{flex:none}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px;font-family:Cambria,Georgia,serif}
+header p{margin:0;color:#D5E3F0}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy);font-family:Cambria,Georgia,serif}
+.card h3{margin:14px 0 6px;font-size:16px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+.soc{background:var(--blue-l);border-left:4px solid var(--navy);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button.small{padding:4px 10px;font-size:14px}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;outline:3px solid var(--amber)}
+select{font:inherit;padding:6px 8px;border-radius:6px;border:1px solid var(--line);max-width:100%}
+label.inl{display:inline-flex;align-items:center;gap:6px;margin:4px 14px 4px 0}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+pre.term{background:#0F1B28;color:#E6EDF3;padding:12px 14px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.45;white-space:pre}
+pre.term .cmd{color:#F2B655}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;background:var(--teal-l);color:var(--teal);font-weight:600;margin:1px 2px}
+.pill.red{background:var(--red-l);color:var(--red)}.pill.amber{background:var(--amber-l);color:var(--amber)}
+.pill.navy{background:var(--blue-l);color:var(--navy)}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;font-size:15px}
+th{background:#EEF2F6}
+.scroll{overflow-x:auto}
+.bar{height:10px;background:var(--teal);border-radius:5px}
+.bar.off{background:#C9D2DC}.bar.red{background:var(--red)}
+.chunk{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px;background:#fff}
+.chunk.leak{border-color:var(--red);background:var(--red-l)}
+.chunk.sent{border-color:var(--teal);background:var(--teal-l)}
+.chunk.dim{opacity:.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.steps button{margin:2px 4px 2px 0}
+nav.pager{max-width:1000px;margin:0 auto;padding:0 16px 10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+nav.pager a{color:var(--navy);font-weight:600}
+footer{max-width:1000px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:700px){header h1{font-size:21px}.card{padding:14px}.grid2{grid-template-columns:1fr}label.inl{display:flex;flex-wrap:wrap;margin-right:0}label.inl select{width:100%}}
+</style></head>
+<body>
+<header><div class="wrap"><div><small>AI Bootcamp - Module 6 - Section 3 - Data governance</small><h1>Data governance: label it before you protect it</h1><p>Sensitivity, PII and residency for every data asset</p></div><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" role="img" aria-label="Module 6 logo" viewBox="0 0 512 512"><circle cx="256" cy="256" r="250" fill="#213A55" stroke="#7F9AB5" stroke-width="6"/><circle cx="256" cy="256" r="172" fill="#0E8C7E"/><svg x="164.0" y="164.0" width="184.0" height="184.0" viewBox="0 0 512 512" fill="#FFFFFF"><path d="M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C27.7 91.1 16 108.6 16 128c0 198.5 114.5 335.7 221.5 380.3 11.8 4.9 25.1 4.9 36.9 0C360.1 472.6 496 349.3 496 128c0-19.4-11.7-36.9-29.5-44.3zM256.1 446.3l-.1-381 175.9 73.3c-3.3 151.4-82.1 261.1-175.8 307.7z"/></svg><circle cx="395" cy="395" r="79" fill="#C9821B" stroke="#0F2A44" stroke-width="12"/><svg x="365.0" y="355.0" width="60.0" height="80.0" viewBox="0 0 384 512" fill="#FFFFFF"><path d="M336 64h-80c0-35.3-28.7-64-64-64s-64 28.7-64 64H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48zM192 40c13.3 0 24 10.7 24 24s-10.7 24-24 24-24-10.7-24-24 10.7-24 24-24zm121.2 231.8l-143 141.8c-4.7 4.7-12.3 4.6-17-.1l-82.6-83.3c-4.7-4.7-4.6-12.3.1-17L99.1 285c4.7-4.7 12.3-4.6 17 .1l46 46.4 106-105.2c4.7-4.7 12.3-4.6 17 .1l28.2 28.4c4.7 4.8 4.6 12.3-.1 17z"/></svg></svg></div></header>
+<main>
+
+<div class="card">
+  <h2>Data governance</h2>
+  <p>Governance is simply knowing, for every piece of data the system touches: <b>how sensitive
+  is it, does it contain personal data, and where is it allowed to live?</b> You cannot protect or
+  justify what you have not classified.</p>
+  <div class="analogy"><b>Analogy - labels in a hospital.</b> A hospital does not treat a lunch
+  menu and a patient file the same way. Each document is labelled, and the label decides who may
+  see it and where it may go. Data classification is those labels for your system.</div>
+  <div class="soc"><b>SOC / DevOps:</b> auth logs and CMDB data are <b>confidential and contain
+  PII</b>; ticket comments are <b>untrusted input</b>. The classification is what later tells you
+  this system must be <b>hosted locally</b> (Section 4).</div>
+</div>
+
+<div class="card">
+  <h2>Classify the system's data</h2>
+  <p>These are the real data assets from <span class="mono">system_model.py</span>. Decide the
+  sensitivity of each, then reveal the registered classification.</p>
+  <div id="cls"></div>
+  <p class="score" id="cs"></p>
+</div>
+
+<div class="card">
+  <h2>The three governance questions</h2>
+  <div class="how"><b>Sensitivity</b> (public / internal / confidential / regulated) decides the
+  controls. <b>PII?</b> decides privacy obligations. <b>Residency</b> (where it may live) decides
+  the deployment pattern. In this system every asset is <b>on-VM</b> - nothing is sent to any
+  outside service, which is the whole point of local hosting.</div>
+  <h3>Quick check</h3>
+  <div id="quiz3"></div>
+</div>
+
+</main>
+<nav class="pager"><span><a href="sim6_2_owasp.html">&larr; 2 OWASP LLM Top 10</a></span><a href="index.html">All simulations</a><span><a href="sim6_4_deployment.html">4 Deployment patterns &rarr;</a></span></nav>
+<footer>AI Bootcamp - Module 6: Secure AI engineering. Works offline in any browser. No real AI is called: threat-model and control data come from the real Lab 6 code; AI answers are examples. All data is fictional.</footer>
+<script>
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+function fb(id,cls,html){const e=$(id);e.className='fb show '+cls;e.innerHTML=html;}
+function mcq(containerId, items, onScore){
+  // items: [{q, opts:[...], a:index, why:"..."}]
+  const box=$(containerId); let answered=0, right=0;
+  box.innerHTML=items.map((it,i)=>`<div style="margin:12px 0"><b>${i+1}. ${esc(it.q)}</b><div id="${containerId}_o${i}">`+
+    it.opts.map((o,j)=>`<button class="ghost" data-i="${i}" data-j="${j}">${esc(o)}</button>`).join('')+
+    `</div><div class="fb" id="${containerId}_f${i}"></div></div>`).join('')+
+    `<p class="score" id="${containerId}_s"></p>`;
+  box.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    const i=+b.dataset.i, j=+b.dataset.j, it=items[i];
+    box.querySelectorAll(`#${containerId}_o${i} button`).forEach(x=>{x.disabled=true;});
+    b.classList.add('chosen'); answered++; if(j===it.a) right++;
+    fb(`${containerId}_f${i}`, j===it.a?'good':'no', (j===it.a?'<span class="ok">Correct.</span> ':'<span class="bad">Not quite.</span> Answer: <b>'+esc(it.opts[it.a])+'</b>. ')+esc(it.why));
+    if(answered===items.length){$(`${containerId}_s`).textContent=`Score: ${right} of ${items.length}`; if(onScore) onScore(right);}
+  }));
+}
+
+
+
+const ASSETS=[
+ {n:"Alert metadata",s:"internal"},
+ {n:"Authentication logs (PII)",s:"confidential"},
+ {n:"Asset owner / CMDB (PII)",s:"confidential"},
+ {n:"Ticket comments (outsider-written)",s:"untrusted-input"},
+ {n:"Case notes + audit log",s:"confidential"}
+];
+const OPTS=["public","internal","confidential","untrusted-input"];
+let done=0,right=0;
+$("cls").innerHTML=ASSETS.map((a,i)=>
+ '<div style="margin:10px 0"><b>'+esc(a.n)+'</b> &nbsp;<label class="inl"><select data-i="'+i+'">'+
+ '<option value="">-</option>'+OPTS.map(o=>'<option>'+o+'</option>').join('')+'</select></label>'+
+ '<div class="fb" id="c'+i+'"></div></div>').join('');
+$("cls").querySelectorAll('select').forEach(sel=>sel.onchange=()=>{
+ const i=+sel.dataset.i,a=ASSETS[i]; if(!sel.value)return; sel.disabled=true;
+ const ok=sel.value===a.s; done++; if(ok)right++;
+ fb("c"+i, ok?"good":"no",(ok?'<span class="ok">Correct.</span>':'<span class="bad">Registered as <b>'+esc(a.s)+'</b>.</span>')+
+   ' All of these are residency: on-VM - they never leave the network.');
+ if(done===ASSETS.length)$("cs").textContent="Score: "+right+" of "+ASSETS.length+" - most sensitive = confidential, which drives local hosting.";
+});
+mcq("quiz3",[
+ {q:"What does data classification decide?",
+  opts:["Nothing, it is paperwork","Which controls apply, privacy duties, and where the data may be hosted","The model's accuracy"],
+  a:1,why:"Sensitivity -> controls; PII -> privacy duties; residency -> deployment pattern."},
+ {q:"The system's most sensitive data is confidential and on-VM. This points to...",
+  opts:["a public SaaS API","local / on-prem hosting","emailing it for backup"],
+  a:1,why:"Confidential, must-not-leave data is the textbook case for local hosting (Section 4)."}
+]);
+
+</script>
+</body></html>

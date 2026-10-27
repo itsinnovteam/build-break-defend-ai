@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Module 6 - final check</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;--blue-l:#E7EEF6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+header .wrap>div{flex:1}
+header svg{flex:none}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px;font-family:Cambria,Georgia,serif}
+header p{margin:0;color:#D5E3F0}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy);font-family:Cambria,Georgia,serif}
+.card h3{margin:14px 0 6px;font-size:16px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+.soc{background:var(--blue-l);border-left:4px solid var(--navy);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button.small{padding:4px 10px;font-size:14px}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;outline:3px solid var(--amber)}
+select{font:inherit;padding:6px 8px;border-radius:6px;border:1px solid var(--line);max-width:100%}
+label.inl{display:inline-flex;align-items:center;gap:6px;margin:4px 14px 4px 0}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+pre.term{background:#0F1B28;color:#E6EDF3;padding:12px 14px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.45;white-space:pre}
+pre.term .cmd{color:#F2B655}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;background:var(--teal-l);color:var(--teal);font-weight:600;margin:1px 2px}
+.pill.red{background:var(--red-l);color:var(--red)}.pill.amber{background:var(--amber-l);color:var(--amber)}
+.pill.navy{background:var(--blue-l);color:var(--navy)}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;font-size:15px}
+th{background:#EEF2F6}
+.scroll{overflow-x:auto}
+.bar{height:10px;background:var(--teal);border-radius:5px}
+.bar.off{background:#C9D2DC}.bar.red{background:var(--red)}
+.chunk{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px;background:#fff}
+.chunk.leak{border-color:var(--red);background:var(--red-l)}
+.chunk.sent{border-color:var(--teal);background:var(--teal-l)}
+.chunk.dim{opacity:.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.steps button{margin:2px 4px 2px 0}
+nav.pager{max-width:1000px;margin:0 auto;padding:0 16px 10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+nav.pager a{color:var(--navy);font-weight:600}
+footer{max-width:1000px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:700px){header h1{font-size:21px}.card{padding:14px}.grid2{grid-template-columns:1fr}label.inl{display:flex;flex-wrap:wrap;margin-right:0}label.inl select{width:100%}}
+</style></head>
+<body>
+<header><div class="wrap"><div><small>AI Bootcamp - Module 6 - Final check</small><h1>Module 6 - final check</h1><p>Ten questions across the whole module</p></div><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" role="img" aria-label="Module 6 logo" viewBox="0 0 512 512"><circle cx="256" cy="256" r="250" fill="#213A55" stroke="#7F9AB5" stroke-width="6"/><circle cx="256" cy="256" r="172" fill="#0E8C7E"/><svg x="164.0" y="164.0" width="184.0" height="184.0" viewBox="0 0 512 512" fill="#FFFFFF"><path d="M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C27.7 91.1 16 108.6 16 128c0 198.5 114.5 335.7 221.5 380.3 11.8 4.9 25.1 4.9 36.9 0C360.1 472.6 496 349.3 496 128c0-19.4-11.7-36.9-29.5-44.3zM256.1 446.3l-.1-381 175.9 73.3c-3.3 151.4-82.1 261.1-175.8 307.7z"/></svg><circle cx="395" cy="395" r="79" fill="#C9821B" stroke="#0F2A44" stroke-width="12"/><svg x="365.0" y="355.0" width="60.0" height="80.0" viewBox="0 0 384 512" fill="#FFFFFF"><path d="M336 64h-80c0-35.3-28.7-64-64-64s-64 28.7-64 64H48C21.5 64 0 85.5 0 112v352c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V112c0-26.5-21.5-48-48-48zM192 40c13.3 0 24 10.7 24 24s-10.7 24-24 24-24-10.7-24-24 10.7-24 24-24zm121.2 231.8l-143 141.8c-4.7 4.7-12.3 4.6-17-.1l-82.6-83.3c-4.7-4.7-4.6-12.3.1-17L99.1 285c4.7-4.7 12.3-4.6 17 .1l46 46.4 106-105.2c4.7-4.7 12.3-4.6 17 .1l28.2 28.4c4.7 4.8 4.6 12.3-.1 17z"/></svg></svg></div></header>
+<main>
+
+<div class="card">
+  <h2>Module 6 - final check</h2>
+  <p>Ten questions across all five sections and the lab. Aim for 8 or more. Each answer explains
+  itself, so this is for learning, not grading.</p>
+  <div id="exam"></div>
+</div>
+<div class="card" id="passcard" style="display:none">
+  <h2>Where this connects</h2>
+  <div class="how"><b>Modules 0-2</b> gave the VM, safety mindset, tests and Bandit. <b>Module 3</b>
+  gave tool calling and tags. <b>Module 4</b> gave RAG and the audit habit. <b>Module 5</b> built
+  and defended the agent. <b>Module 6</b> wraps it in a threat model and control document a CISO can
+  sign - turning a working build into a <b>deployable, governed</b> system.</div>
+</div>
+
+</main>
+<nav class="pager"><span><a href="sim6_lab6_walkthrough.html">&larr; Lab 6 walkthrough</a></span><a href="index.html">All simulations</a><span></span></nav>
+<footer>AI Bootcamp - Module 6: Secure AI engineering. Works offline in any browser. No real AI is called: threat-model and control data come from the real Lab 6 code; AI answers are examples. All data is fictional.</footer>
+<script>
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+function fb(id,cls,html){const e=$(id);e.className='fb show '+cls;e.innerHTML=html;}
+function mcq(containerId, items, onScore){
+  // items: [{q, opts:[...], a:index, why:"..."}]
+  const box=$(containerId); let answered=0, right=0;
+  box.innerHTML=items.map((it,i)=>`<div style="margin:12px 0"><b>${i+1}. ${esc(it.q)}</b><div id="${containerId}_o${i}">`+
+    it.opts.map((o,j)=>`<button class="ghost" data-i="${i}" data-j="${j}">${esc(o)}</button>`).join('')+
+    `</div><div class="fb" id="${containerId}_f${i}"></div></div>`).join('')+
+    `<p class="score" id="${containerId}_s"></p>`;
+  box.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    const i=+b.dataset.i, j=+b.dataset.j, it=items[i];
+    box.querySelectorAll(`#${containerId}_o${i} button`).forEach(x=>{x.disabled=true;});
+    b.classList.add('chosen'); answered++; if(j===it.a) right++;
+    fb(`${containerId}_f${i}`, j===it.a?'good':'no', (j===it.a?'<span class="ok">Correct.</span> ':'<span class="bad">Not quite.</span> Answer: <b>'+esc(it.opts[it.a])+'</b>. ')+esc(it.why));
+    if(answered===items.length){$(`${containerId}_s`).textContent=`Score: ${right} of ${items.length}`; if(onScore) onScore(right);}
+  }));
+}
+
+
+
+const EXAM=[
+ {q:"What is the first question a threat model answers?",
+  opts:["Which cloud is cheapest","What the system is and where untrusted input enters","How to market it"],a:1,
+  why:"Map the data flow and find the untrusted doors before anything else."},
+ {q:"In this system, untrusted input enters at...",
+  opts:["the operator's keyboard only","what the model proposes (F3) and the ticket comments it reads (F7)","nowhere"],a:1,
+  why:"The model is untrusted, and ticket comments can be outsider-written."},
+ {q:"A threat you decide not to fix must be...",
+  opts:["left off the document","recorded as Accepted/Not-applicable with a reason","blamed on the vendor"],a:1,
+  why:"Every threat needs a documented decision; 0 threats may be left open and undecided."},
+ {q:"The OWASP LLM Top 10 is...",
+  opts:["a model benchmark","a shared checklist of the top LLM-app risks","a Python package"],a:1,
+  why:"It is the common vocabulary between engineers and security reviewers."},
+ {q:"LLM01 Prompt injection is primarily addressed here by...",
+  opts:["a faster model","treating tool output as data (CTL-04) and least privilege (CTL-01)","a longer prompt"],a:1,
+  why:"Output-as-data plus least privilege stop a poisoned comment being obeyed or doing damage."},
+ {q:"Data governance classifies each asset by...",
+  opts:["file size","sensitivity, PII, and residency","who created it"],a:1,
+  why:"Those three decide controls, privacy duties, and the deployment pattern."},
+ {q:"Confidential data that must not leave the network points to which deployment pattern?",
+  opts:["public SaaS API","fully local / on-prem hosting","email backup"],a:1,
+  why:"The more sensitive the data, the stronger the case for hosting it yourself."},
+ {q:"Compliance mapping becomes defendable when...",
+  opts:["it lists many frameworks","each control is backed by a passing test as evidence","it is very long"],a:1,
+  why:"Evidence turns 'we believe' into 'here is the proof'."},
+ {q:"Why generate the document from one system model?",
+  opts:["to save paper","so the paperwork can never drift from the real build","to hide details"],a:1,
+  why:"Change the model, regenerate - the threat model and controls always match the system."},
+ {q:"What makes the Lab 6 document defendable in front of a CISO?",
+  opts:["its formatting","0 open threats, OWASP coverage, and every control backed by a passing test","its length"],a:1,
+  why:"A complete threat model plus live, test-backed evidence is exactly what a reviewer signs."}
+];
+const box=$("exam");
+box.innerHTML=EXAM.map((it,i)=>`<div style="margin:14px 0"><b>${i+1}. ${esc(it.q)}</b><div id="o${i}">`+
+  it.opts.map((o,j)=>`<button class="ghost" data-i="${i}" data-j="${j}">${esc(o)}</button>`).join('')+
+  `</div><div class="fb" id="f${i}"></div></div>`).join('')+`<p class="score" id="sc"></p>`;
+let done=0,right=0;
+box.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+ const i=+b.dataset.i,j=+b.dataset.j,it=EXAM[i];
+ $("o"+i).querySelectorAll('button').forEach(x=>x.disabled=true);
+ b.classList.add('chosen'); done++; if(j===it.a) right++;
+ fb("f"+i, j===it.a?'good':'no',(j===it.a?'<span class="ok">Correct.</span> ':'<span class="bad">Not quite.</span> Answer: <b>'+esc(it.opts[it.a])+'</b>. ')+esc(it.why));
+ if(done===EXAM.length){
+   $("sc").innerHTML="Score: <b>"+right+" of "+EXAM.length+"</b> - "+
+     (right>=8?'<span class="ok">you can threat-model and govern an AI system.</span>':'<span class="warn">review the sections you missed, then retry.</span>');
+   $("passcard").style.display="block";
+ }
+}));
+
+</script>
+</body></html>

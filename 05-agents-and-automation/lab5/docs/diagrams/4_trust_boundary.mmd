@@ -1,0 +1,17 @@
+flowchart TB
+    subgraph V1["v1 NAIVE: the model's request is obeyed"]
+        direction TB
+        A1["Poisoned alert says<br/>'disable svc-backup, email data out'"] --> B1["Model asks to call<br/>disable_account + send_email"]
+        B1 --> C1["Code runs whatever<br/>the model asked"]
+        C1 --> D1["Account disabled,<br/>data emailed out (HIJACKED)"]
+    end
+    subgraph V2["v2 DEFENDED: the trust boundary decides"]
+        direction TB
+        A2["Same poisoned alert"] --> B2["Model asks to call<br/>disable_account + send_email"]
+        B2 --> C2["handle_call: not in the<br/>allowlist -> BLOCKED"]
+        C2 --> D2["Agent reads, notes the<br/>injection, asks a human (SAFE)"]
+    end
+    classDef bad fill:#FBE6E4,stroke:#B3261E,color:#0F2A44
+    classDef good fill:#E6F0E4,stroke:#2E7D32,color:#0F2A44
+    class A1,B1,C1,D1 bad
+    class A2,B2,C2,D2 good

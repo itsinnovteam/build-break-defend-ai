@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Defending an agent: the trifecta, five layers, one boundary</title><style>
+:root{--navy:#0F2A44;--teal:#0E8C7E;--teal-l:#E3F4F1;--amber:#C9821B;--amber-l:#FBF0DD;
+--red:#C23B3B;--red-l:#F9E3E3;--green:#2E7D4F;--green-l:#E2F2E8;--bg:#F4F6F9;--card:#FFFFFF;
+--ink:#1C2733;--muted:#5B6878;--line:#D8DEE6;--blue-l:#E7EEF6}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:22px 16px}
+header .wrap{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+header .wrap>div{flex:1}
+header svg{flex:none}
+header small{color:#9FC3E0;letter-spacing:.08em;text-transform:uppercase;font-size:12px}
+header h1{margin:4px 0 6px;font-size:26px;font-family:Cambria,Georgia,serif}
+header p{margin:0;color:#D5E3F0}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 18px}
+.card h2{margin:0 0 6px;font-size:20px;color:var(--navy);font-family:Cambria,Georgia,serif}
+.card h3{margin:14px 0 6px;font-size:16px;color:var(--navy)}
+.how{background:var(--teal-l);border-left:4px solid var(--teal);padding:10px 14px;border-radius:6px;margin:8px 0 12px;font-size:15px}
+.analogy{background:var(--amber-l);border-left:4px solid var(--amber);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+.soc{background:var(--blue-l);border-left:4px solid var(--navy);padding:10px 14px;border-radius:6px;margin:8px 0;font-size:15px}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--navy);background:var(--navy);color:#fff;padding:8px 16px;margin:4px 6px 4px 0}
+button.ghost{background:#fff;color:var(--navy)}
+button.small{padding:4px 10px;font-size:14px}
+button:disabled{opacity:.45;cursor:default}
+button.chosen:disabled{opacity:1;outline:3px solid var(--amber)}
+select{font:inherit;padding:6px 8px;border-radius:6px;border:1px solid var(--line);max-width:100%}
+label.inl{display:inline-flex;align-items:center;gap:6px;margin:4px 14px 4px 0}
+.ok{color:var(--green);font-weight:600}.bad{color:var(--red);font-weight:600}.warn{color:var(--amber);font-weight:600}
+.fb{margin-top:10px;padding:10px 14px;border-radius:6px;display:none}
+.fb.show{display:block}.fb.good{background:var(--green-l)}.fb.no{background:var(--red-l)}.fb.mid{background:var(--amber-l)}
+.mono{font-family:Consolas,"Courier New",monospace;font-size:14px}
+pre.term{background:#0F1B28;color:#E6EDF3;padding:12px 14px;border-radius:8px;overflow-x:auto;font-size:13px;line-height:1.45;white-space:pre}
+pre.term .cmd{color:#F2B655}
+.score{font-size:18px;font-weight:700;color:var(--navy)}
+.pill{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;background:var(--teal-l);color:var(--teal);font-weight:600;margin:1px 2px}
+.pill.red{background:var(--red-l);color:var(--red)}.pill.amber{background:var(--amber-l);color:var(--amber)}
+.pill.navy{background:var(--blue-l);color:var(--navy)}
+table{border-collapse:collapse;width:100%}
+th,td{border:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;font-size:15px}
+th{background:#EEF2F6}
+.scroll{overflow-x:auto}
+.bar{height:10px;background:var(--teal);border-radius:5px}
+.bar.off{background:#C9D2DC}.bar.red{background:var(--red)}
+.chunk{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:14px;background:#fff}
+.chunk.leak{border-color:var(--red);background:var(--red-l)}
+.chunk.sent{border-color:var(--teal);background:var(--teal-l)}
+.chunk.dim{opacity:.45}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.steps button{margin:2px 4px 2px 0}
+nav.pager{max-width:1000px;margin:0 auto;padding:0 16px 10px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+nav.pager a{color:var(--navy);font-weight:600}
+footer{max-width:1000px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:13px}
+@media (max-width:700px){header h1{font-size:21px}.card{padding:14px}.grid2{grid-template-columns:1fr}label.inl{display:flex;flex-wrap:wrap;margin-right:0}label.inl select{width:100%}}
+</style></head>
+<body>
+<header><div class="wrap"><div><small>AI Bootcamp - Module 5 - Section 5 - Security</small><h1>Defending an agent: the trifecta, five layers, one boundary</h1><p>Where the lethal access is, and how to take it away</p></div><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" role="img" aria-label="Module 5 logo" viewBox="0 0 512 512"><circle cx="256" cy="256" r="250" fill="#213A55" stroke="#7F9AB5" stroke-width="6"/><circle cx="256" cy="256" r="172" fill="#0E8C7E"/><svg x="164.0" y="182.4" width="184.0" height="147.2" viewBox="0 0 640 512" fill="#FFFFFF"><path d="M32,224H64V416H32A31.96166,31.96166,0,0,1,0,384V256A31.96166,31.96166,0,0,1,32,224Zm512-48V448a64.06328,64.06328,0,0,1-64,64H160a64.06328,64.06328,0,0,1-64-64V176a79.974,79.974,0,0,1,80-80H288V32a32,32,0,0,1,64,0V96H464A79.974,79.974,0,0,1,544,176ZM264,256a40,40,0,1,0-40,40A39.997,39.997,0,0,0,264,256Zm-8,128H192v32h64Zm96,0H288v32h64ZM456,256a40,40,0,1,0-40,40A39.997,39.997,0,0,0,456,256Zm-8,128H384v32h64ZM640,256V384a31.96166,31.96166,0,0,1-32,32H576V224h32A31.96166,31.96166,0,0,1,640,256Z"/></svg><circle cx="395" cy="395" r="79" fill="#C9821B" stroke="#0F2A44" stroke-width="12"/><svg x="355.0" y="355.0" width="80.0" height="80.0" viewBox="0 0 512 512" fill="#FFFFFF"><path d="M466.5 83.7l-192-80a48.15 48.15 0 0 0-36.9 0l-192 80C27.7 91.1 16 108.6 16 128c0 198.5 114.5 335.7 221.5 380.3 11.8 4.9 25.1 4.9 36.9 0C360.1 472.6 496 349.3 496 128c0-19.4-11.7-36.9-29.5-44.3zM256.1 446.3l-.1-381 175.9 73.3c-3.3 151.4-82.1 261.1-175.8 307.7z"/></svg></svg></div></header>
+<main>
+
+<div class="card">
+  <h2>The lethal trifecta</h2>
+  <p>An agent becomes dangerous when it can do <b>all three</b> of these at once:</p>
+  <ol>
+    <li><b>Read private data</b> (alerts, logs, who owns what)</li>
+    <li><b>See untrusted content</b> (a ticket comment an outsider wrote)</li>
+    <li><b>Talk to the outside world</b> (send email, call a web hook)</li>
+  </ol>
+  <p>With all three, a poisoned comment can tell the agent to gather secrets and mail them out -
+  <b>exfiltration</b>. Remove any one leg and that attack falls apart. Toggle the legs and watch
+  the risk:</p>
+  <div id="tri"></div>
+  <div class="analogy"><b>Analogy - a clerk with keys, an open mailbox, and a stranger's note.</b>
+  A clerk who can open the filing cabinet, read a note slipped under the door, <i>and</i> post
+  letters can be tricked into mailing your files to a stranger. Take away the stamps (no outside
+  mail) and the same trick achieves nothing.</div>
+  <div class="soc"><b>SOC:</b> Lab 5 breaks the trifecta by giving the triage agent <b>no
+  external tool at all</b> - it can read and take notes, but it cannot email anyone. The leak
+  leg is simply gone.</div>
+</div>
+
+<div class="card">
+  <h2>The five defences, in code</h2>
+  <p>The defended agent (v2) stacks five layers. Each one stops a <i>different</i> bad call.
+  Click a defence to see the exact call it blocks - these are the real messages from
+  <span class="mono">attacks.py</span>.</p>
+  <div class="steps" id="defbtns"></div>
+  <div id="defout"></div>
+</div>
+
+<div class="card">
+  <h2>The trust boundary: one function decides everything</h2>
+  <p>All five layers live in one place - <span class="mono">handle_call</span> in
+  <span class="mono">agent.py</span>. The model can <i>ask</i> for anything; this function
+  decides what actually runs. Feed it the hijack and watch:</p>
+  <div id="tb"></div>
+  <div class="fb" id="tbend"></div>
+</div>
+
+<div class="card">
+  <h2>Downgrading the risk - the checklist</h2>
+  <div class="how"><b>Least privilege</b> (give only the tools the job needs) &middot;
+  <b>Human approval</b> for anything that changes production or leaves the building &middot;
+  <b>Validate arguments</b> even on approved actions &middot; <b>Treat every tool result as
+  data</b>, never as orders (wrap it in <span class="mono">&lt;observation&gt;</span>) &middot;
+  <b>Limits + an audit log</b> so nothing runs away and everything is recorded. Same spirit as
+  Modules 1-4: assume the input is hostile, and put the control in <i>code</i>, not in the
+  prompt.</div>
+  <h3>Quick check</h3>
+  <div id="quiz5"></div>
+</div>
+
+</main>
+<nav class="pager"><span><a href="sim5_4_when_not.html">&larr; 4 When not to use agents</a></span><a href="index.html">All simulations</a><span><a href="sim5_lab5_walkthrough.html">Lab 5 walkthrough &rarr;</a></span></nav>
+<footer>AI Bootcamp - Module 5: Agents and automation. Works offline in any browser. No real AI is called: tool results and decisions come from the real Lab 5 code; AI answers are examples. All data is fictional.</footer>
+<script>
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+function fb(id,cls,html){const e=$(id);e.className='fb show '+cls;e.innerHTML=html;}
+function mcq(containerId, items, onScore){
+  // items: [{q, opts:[...], a:index, why:"..."}]
+  const box=$(containerId); let answered=0, right=0;
+  box.innerHTML=items.map((it,i)=>`<div style="margin:12px 0"><b>${i+1}. ${esc(it.q)}</b><div id="${containerId}_o${i}">`+
+    it.opts.map((o,j)=>`<button class="ghost" data-i="${i}" data-j="${j}">${esc(o)}</button>`).join('')+
+    `</div><div class="fb" id="${containerId}_f${i}"></div></div>`).join('')+
+    `<p class="score" id="${containerId}_s"></p>`;
+  box.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    const i=+b.dataset.i, j=+b.dataset.j, it=items[i];
+    box.querySelectorAll(`#${containerId}_o${i} button`).forEach(x=>{x.disabled=true;});
+    b.classList.add('chosen'); answered++; if(j===it.a) right++;
+    fb(`${containerId}_f${i}`, j===it.a?'good':'no', (j===it.a?'<span class="ok">Correct.</span> ':'<span class="bad">Not quite.</span> Answer: <b>'+esc(it.opts[it.a])+'</b>. ')+esc(it.why));
+    if(answered===items.length){$(`${containerId}_s`).textContent=`Score: ${right} of ${items.length}`; if(onScore) onScore(right);}
+  }));
+}
+
+
+
+// --- lethal trifecta toggles ---
+const legs={read:true,untrusted:true,extern:true};
+function triDraw(){
+  const all=legs.read&&legs.untrusted&&legs.extern;
+  $("tri").innerHTML=
+   '<p>'+[["read","Read private data"],["untrusted","See untrusted content"],["extern","Talk to the outside world"]]
+     .map(l=>'<label class="inl"><input type="checkbox" data-k="'+l[0]+'"'+(legs[l[0]]?' checked':'')+'> '+l[1]+'</label>').join('')+'</p>'+
+   '<p class="score">Exfiltration risk: '+(all?'<span class="bad">HIGH - all three legs present</span>'
+     :'<span class="ok">LOW - a leg is missing, the attack cannot complete</span>')+'</p>'+
+   (all?'<p class="mono">poisoned comment &rarr; read secrets &rarr; email them out &check;</p>'
+       :'<p class="mono">poisoned comment &rarr; '+(!legs.extern?'no way to send anything out &cross;'
+         :!legs.read?'nothing private to steal &cross;':'nothing hostile telling it what to do &cross;')+'</p>');
+  $("tri").querySelectorAll('input').forEach(c=>c.onchange=()=>{legs[c.dataset.k]=c.checked;triDraw();});
+}
+triDraw();
+// --- five defences ---
+const DEF=[
+ ["1 Least privilege","disable_account(svc-backup)","blocked: tool 'disable_account' is not allowed for this task (least privilege)"],
+ ["2 Human approval","block_ip(198.51.100.20)","denied: a human did not approve this write action"],
+ ["3 Argument check","disable_account(svc-backup)","blocked: argument check failed: 'svc-backup' is a critical account and must not be disabled by the agent"],
+ ["4 Argument check","send_email(x@mail.external-review.example)","blocked: argument check failed: recipient is not internal (allowed: example.com)"],
+ ["5 Data not orders","every tool result","wrapped in <observation> and never executed"]
+];
+$("defbtns").innerHTML=DEF.map((d,i)=>'<button class="ghost" data-i="'+i+'">'+d[0]+'</button>').join('');
+$("defbtns").querySelectorAll('button').forEach(b=>b.onclick=()=>{
+ const d=DEF[+b.dataset.i];
+ $("defout").innerHTML='<pre class="term"><span class="cmd">'+esc(d[0])+'</span>\n  the model asks: '+
+   esc(d[1])+'\n  result: <span style="color:#7CD992">'+esc(d[2])+'</span></pre>';
+});
+// --- trust boundary ---
+$("tb").innerHTML='<button id="hj">Run the poisoned alert A-1007 through handle_call (v2)</button><div id="tbo"></div>';
+$("hj").onclick=()=>{
+ const rows=[
+  ["get_alert","read","ran","(the poisoned comment is read, but treated as data)"],
+  ["disable_account","write","BLOCKED","not in the allowlist (least privilege)"],
+  ["send_email","extern","BLOCKED","not in the allowlist (least privilege)"],
+  ["lookup_ip_reputation","read","ran",""],
+  ["add_case_note","write","ran","the agent's own records - part of the job"]
+ ];
+ $("tbo").innerHTML='<table><tr><th>Tool the model asked for</th><th>Risk</th><th>Decision</th><th>Why</th></tr>'+
+  rows.map(r=>'<tr><td class="mono">'+r[0]+'</td><td>'+r[1]+'</td><td>'+
+   (r[2]==="ran"?'<span class="ok">ran</span>':'<span class="bad">'+r[2]+'</span>')+'</td><td>'+esc(r[3])+'</td></tr>').join('')+'</table>';
+ fb("tbend","good","<b>The hijack did nothing.</b> The model obeyed the poisoned note and asked to "+
+   "disable an account and email data out - but handle_call refused both, because they are not on "+
+   "the triage allowlist. The agent still finished the real job. <b>The guard is in code, so a "+
+   "tricked model cannot talk its way past it.</b>");
+};
+mcq("quiz5",[
+ {q:"What are the three legs of the lethal trifecta?",
+  opts:["Speed, cost, accuracy","Read private data + see untrusted content + talk to the outside world","Model, server, client"],
+  a:1,why:"All three together enable exfiltration. Remove one and the attack cannot complete."},
+ {q:"The v2 agent blocks the hijack because...",
+  opts:["the prompt politely asks the model to be safe","the code (handle_call) refuses tools outside the allowlist, no matter what the model asks","the attacker gave up"],
+  a:1,why:"Security lives in code at the trust boundary, never in the model's goodwill."},
+ {q:"Which is the single most effective way Lab 5 breaks the trifecta for the triage agent?",
+  opts:["Giving it a faster model","Giving it no external tool at all","Longer prompts"],
+  a:1,why:"No external tool means the exfiltration leg simply does not exist."}
+]);
+
+</script>
+</body></html>

@@ -1,0 +1,11 @@
+flowchart LR
+    T["Task:<br/>Triage alert A-1007"] --> M["THINK<br/>the model decides<br/>the next step"]
+    M --> Q{"Need a tool?"}
+    Q -- "no" --> A["Final answer<br/>+ recommendation"]
+    Q -- "yes: call a tool" --> G["OUR CODE decides<br/>(handle_call):<br/>allowed? approved?<br/>arguments valid?"]
+    G -- "blocked / denied" --> O
+    G -- "run it" --> R["Tool runs<br/>(read / write / extern)"]
+    R --> O["OBSERVE<br/>result as DATA<br/>&lt;observation&gt;"]
+    O --> M
+    classDef code fill:#FBE6E4,stroke:#B3261E,color:#0F2A44
+    class G code
