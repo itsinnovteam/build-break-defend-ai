@@ -1,6 +1,0 @@
-{
-  "fix1_filter_at_retrieval": false,
-  "fix2_ignore_caller_groups": false,
-  "fix3_inherit_chunk_labels": false,
-  "fix4_cache_per_user": false
-}
