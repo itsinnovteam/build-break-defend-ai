@@ -2,11 +2,20 @@
 run_agent.py - run the SOC triage agent on one alert, with the naive or the defended policy.
 
 Examples:
-  python run_agent.py --task "Triage alert A-1007"                 # defended (v2), safe
+  python run_agent.py --task "Triage alert A-1007"                 # defended (v2), live model
   python run_agent.py --task "Triage alert A-1007" --version v1    # naive, hijackable
   python run_agent.py --task "Triage alert A-1008"                 # a clean alert
+  python run_agent.py --task "Triage alert A-1007" --scripted      # deterministic demo (no Ollama)
 
-Each AI step takes about 10 to 60 seconds on a CPU. That is normal.
+About --scripted:
+  The live model (llama3.1:8b) is small and non-deterministic: on a given run it may stop after
+  one tool call, or word its answer differently. That is realistic, and the lab's safety does NOT
+  depend on it - the controls are enforced in code. But for a slide or a class demo you often want
+  the EXACT, repeatable output. --scripted uses the same stand-in model the tests use (a fully
+  hijacked model), so the steps are identical every time and no Ollama is needed. Use the live run
+  to show reality; use --scripted to reproduce the documented output on demand.
+
+Each live AI step takes about 10 to 60 seconds on a CPU. That is normal. --scripted is instant.
 """
 
 import argparse
@@ -15,6 +24,7 @@ import sys
 import agent
 import config
 import ollama_client
+import scripted_model
 import toolkit
 
 RISK_TAG = {config.READ: "", config.WRITE: " (write)", config.EXTERN: " (external!)"}
@@ -70,6 +80,8 @@ def main(argv=None):
                         help="v2 only: how write/external actions are approved (default: ask)")
     parser.add_argument("--job", choices=["triage", "response"], default="triage",
                         help="v2 only: triage = read-only; response = may also block an IP (with approval)")
+    parser.add_argument("--scripted", action="store_true",
+                        help="use the deterministic stand-in model (same as the tests); no Ollama needed")
     args = parser.parse_args(argv)
 
     system = (config.HERE / "prompts" / f"system_{args.version}.txt").read_text(encoding="utf-8")
@@ -79,15 +91,21 @@ def main(argv=None):
         allowlist = config.RESPONSE_ALLOWLIST if args.job == "response" else config.TRIAGE_ALLOWLIST
         policy = agent.Policy.defended(system, approve=make_approver(args.approve), allowlist=allowlist)
 
-    def chat_fn(messages, tools):
-        return ollama_client.chat(messages, tools=tools)
+    if args.scripted:
+        # Deterministic: a fully hijacked stand-in model. The controls still decide what runs.
+        def chat_fn(messages, tools):
+            return scripted_model.hijacked_model(messages, tools)
+        print("Running the agent with the SCRIPTED model (deterministic demo; no Ollama).\n")
+    else:
+        def chat_fn(messages, tools):
+            return ollama_client.chat(messages, tools=tools)
+        try:
+            ollama_client.version()
+        except ollama_client.OllamaError as exc:
+            print(f"ERROR: {exc}", file=sys.stderr)
+            return 1
+        print("Running the agent... (each AI step on a CPU can take 10 to 60 seconds)\n")
 
-    try:
-        ollama_client.version()
-    except ollama_client.OllamaError as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
-        return 1
-    print("Running the agent... (each AI step on a CPU can take 10 to 60 seconds)\n")
     r = agent.run(args.task, chat_fn, policy)
     if args.version == "v2":
         agent.write_audit(r)
