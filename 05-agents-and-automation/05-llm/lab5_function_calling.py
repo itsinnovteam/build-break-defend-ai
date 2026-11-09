@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 """
-Mini-lab - Function calling, step by step (the slide 6 diagram, live; slides 9-13).
+Mini-lab - ONE function call, step by step (the slide 4 diagram, live).
 AI Bootcamp, Module 5: Agents and Automation.
+
+Exactly one trip around the diagram, then the model must answer:
+  request 1: the model may call ONE tool  -> your code checks and runs it -> result back
+  request 2: your code offers NO tools    -> the model can only answer
+There is no loop here. lab5_agent_loop.py lets it keep going.
 
 Every line of output is tagged with the diagram box it belongs to:
   [1 PROMPT]  [2 MESSAGES + TOOL LIST]  [3 LLM]  [4 YOUR CODE]  [5 FUNCTIONS]  [RESULT BACK]
 
-Each tool's arguments are a Pydantic class. The same class does two jobs:
-  - box 2: it generates the JSON schema the model reads (a hint)
-  - box 4: it validates what the model sends back (a check)
-Box 4 then applies a permission guard Pydantic cannot: approved email recipients.
-
 Needs: Python 3.9+, pydantic 2.x (2.13.5 is the newest for Python 3.9),
 lab5_agent.py and lab5_data/ from Lab 5. --offline needs no Ollama.
 
-  pip3 install --user "pydantic==2.13.5"
-  python3 lab5_function_calling.py --offline           # scripted model replies, same output every time
-  python3 lab5_function_calling.py                     # real run with Ollama llama3.1:8b
-  python3 lab5_function_calling.py --offline --to soc-archive@northwind-backup.net   # watch the guard
-  python3 lab5_function_calling.py --show-schemas      # print every tool schema in step 2
+  pip install "pydantic==2.13.5"            (inside a venv; without one: pip3 install --user ...)
+  python3 lab5_function_calling.py --offline                     # one call: lookup_ip
+  python3 lab5_function_calling.py --offline --bad-args          # the model adds the port: validate() rejects it
+  python3 lab5_function_calling.py --offline --task email --to soc-archive@northwind-backup.net   # guard() rejects it
+  python3 lab5_function_calling.py                               # real run with Ollama llama3.1:8b
+  python3 lab5_function_calling.py --show-schemas                # print every tool schema in step 2
 """
 import argparse
 import inspect
@@ -32,7 +33,7 @@ from typing import Any, Dict, List, Optional, Tuple
 try:
     from pydantic import BaseModel, ConfigDict, Field, ValidationError
 except ImportError:
-    sys.exit('Pydantic is not installed. Run:  pip3 install --user "pydantic==2.13.5"')
+    sys.exit('Pydantic is not installed. Run:  pip install "pydantic==2.13.5"')
 
 import lab5_agent as base
 
@@ -84,6 +85,13 @@ def tool_spec(name: str) -> Dict[str, Any]:
 
 TOOL_LIST = [tool_spec(n) for n in FUNCTIONS]
 
+TASKS = {
+    "ip": "Alert NW-4471: process vpnhelper.exe on FIN-LT-022 connects to 203.0.113.66:443 every 60 s. "
+          "Is the destination IP malicious?",
+    "email": "Email a two-line summary of alert NW-4471 to {to}: FIN-LT-022 beacons to 203.0.113.66, "
+             "a known C2 server. Severity HIGH.",
+}
+
 
 def tag(box: str, text: str = "") -> None:
     print("[%s] %s" % (box, text))
@@ -97,48 +105,46 @@ def show(obj: Any, limit: int = 400, indent: str = "      ") -> None:
 
 
 # ---------------------------------------------------------------- [3] the LLM
-def call_llm(messages: List[Dict[str, Any]]) -> Dict[str, Any]:
-    body = json.dumps({"model": base.MODEL, "messages": messages, "tools": TOOL_LIST,
-                       "stream": False, "options": {"temperature": 0.3}}).encode()
-    req = urllib.request.Request(base.OLLAMA_URL, data=body, headers={"Content-Type": "application/json"})
+def call_llm(messages: List[Dict[str, Any]], tools: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+    body = {"model": base.MODEL, "messages": messages, "stream": False, "options": {"temperature": 0.3}}
+    body["tools"] = TOOL_LIST if tools is None else tools
+    req = urllib.request.Request(base.OLLAMA_URL, data=json.dumps(body).encode(),
+                                 headers={"Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=600) as r:
         return json.loads(r.read())
 
 
-def scripted_llm(to: str):
-    """--offline: replays what llama3.1:8b typically does, so the lab works without Ollama.
-    Step 2 copies '203.0.113.66:443' from the alert text - a classic model mistake."""
+def scripted_llm(task: str, to: str, bad_args: bool):
+    """--offline: replays what llama3.1:8b typically does, so the lab works without Ollama."""
     def call(name, **args):
         return {"message": {"role": "assistant", "content": "",
-                            "tool_calls": [{"function": {"name": name, "arguments": args}}]}, "eval_count": 28}
-    replies = iter([
-        call("get_alert", alert_id="NW-4471"),
-        call("lookup_ip", ip="203.0.113.66:443"),
-        call("lookup_ip", ip="203.0.113.66"),
-        call("get_tenable_findings", host="FIN-LT-022"),
-        call("send_email", to=to, subject="NW-4471 triage: HIGH",
-             body="FIN-LT-022 beacons to known C2 203.0.113.66 every 60 s; critical VPN client RCE unpatched. "
-                  "Recommend isolate, block IP, patch."),
-        None,                                            # final answer, built from what happened
-    ])
+                            "tool_calls": [{"function": {"name": name, "arguments": args}}]}, "eval_count": 24}
 
-    def reply(messages):
-        r = next(replies)
-        if r is not None:
-            return r
-        sent = "refused" not in messages[-1]["content"]
-        return {"message": {"role": "assistant", "content":
-            "Severity: HIGH. FIN-LT-022 (j.reyes) runs vpnhelper.exe beaconing to 203.0.113.66, a known "
-            "Cobalt Strike C2. The host has a critical, 41-day-old VPN client RCE. Actions: isolate FIN-LT-022 "
-            "(call the Finance duty manager first), block 203.0.113.66, patch the VPN client. "
-            + ("Summary emailed to the SOC lead." if sent else
-               "I could not email the summary: the recipient was refused.")}, "eval_count": 85}
+    def answer(text):
+        return {"message": {"role": "assistant", "content": text}, "eval_count": 60}
+
+    def reply(messages, tools=None):
+        if messages[-1]["role"] != "tool":                       # request 1: the model picks a tool
+            if task == "email":
+                return call("send_email", to=to, subject="NW-4471 triage: HIGH",
+                            body="FIN-LT-022 beacons to 203.0.113.66, a known C2 server. Severity HIGH.")
+            return call("lookup_ip", ip="203.0.113.66:443" if bad_args else "203.0.113.66")
+        result = messages[-1]["content"]                           # request 2: no tools, so it answers
+        if "error" in result:
+            return answer("I couldn't check the reputation: the IP I sent included the port (:443) and was "
+                          "rejected. Re-run the lookup with 203.0.113.66.")
+        if "refused" in result:
+            return answer("I could not send the summary: the recipient was refused.")
+        if task == "email":
+            return answer("Done: the NW-4471 summary was emailed to %s." % to)
+        return answer("Yes. 203.0.113.66 is malicious: threat intel tags it as a Cobalt Strike C2 server, "
+                      "first seen 2026-10-28. FIN-LT-022 is likely compromised; escalate NW-4471.")
     return reply
 
 
 # ---------------------------------------------------------------- [4] your code: validate, guard, route
 def validate(name: str, args: Any) -> Tuple[Optional[BaseModel], Optional[Dict[str, Any]]]:
-    """Shape check with Pydantic. Returns (validated object, None) or (None, error to send back)."""
+    """Your code's shape check, using Pydantic. Returns (validated object, None) or (None, error to send back)."""
     if name not in FUNCTIONS:
         return None, {"error": "unknown function %r" % name}
     model = FUNCTIONS[name][1]
@@ -154,7 +160,7 @@ def validate(name: str, args: Any) -> Tuple[Optional[BaseModel], Optional[Dict[s
 
 
 def guard(name: str, clean: Dict[str, Any]) -> Optional[str]:
-    """Permission check: Pydantic can't know who is an approved recipient. Your code does."""
+    """Your code's permission check: Pydantic can't know who is an approved recipient."""
     if name == "send_email":
         domain = clean["to"].rsplit("@", 1)[-1].lower()
         if domain not in ALLOWED_DOMAINS:
@@ -162,109 +168,106 @@ def guard(name: str, clean: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-def short(args: Any) -> str:
-    vals = args.values() if isinstance(args, dict) else [args]
-    return ", ".join(str(v) for v in vals)
+def run_call(name: str, args: Any) -> Tuple[Any, str]:
+    """Box 4 then box 5 for one call. Returns (result to send back, what happened)."""
+    obj, error = validate(name, args)
+    if error:
+        tag("4 YOUR CODE", "validate(): REJECTED by your code (Pydantic check failed). The function does not run.")
+        show(error)
+        return error, "REJECTED by your code · validate()"
+    clean = obj.model_dump(mode="json")
+    tag("4 YOUR CODE", "validate(): OK (Pydantic) -> %r" % obj)
+    reason = guard(name, clean)
+    if reason:
+        tag("4 YOUR CODE", "guard(): REJECTED by your code - " + reason)
+        return {"refused": reason}, "REJECTED by your code · guard()"
+    tag("4 YOUR CODE", "guard(): allowed -> route to %s()" % name)
+    result = FUNCTIONS[name][0](**clean)
+    tag("5 FUNCTIONS", "%s(%s) returned:" % (name, ", ".join("%s=%s" % (k, json.dumps(v)) for k, v in clean.items())))
+    show(result)
+    return result, "ran %s()" % name
 
 
-# ---------------------------------------------------------------- the run
+# ---------------------------------------------------------------- the run: one trip, then answer
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Function calling, step by step (with Pydantic)")
+    ap = argparse.ArgumentParser(description="One function call, step by step (with Pydantic)")
     ap.add_argument("--offline", action="store_true", help="scripted model replies (no Ollama)")
-    ap.add_argument("--to", default="soc-lead@northwind.example", help="who the summary is emailed to")
+    ap.add_argument("--task", choices=list(TASKS), default="ip", help="ip = check the IP, email = send a summary")
+    ap.add_argument("--to", default="soc-lead@northwind.example", help="recipient for --task email")
+    ap.add_argument("--bad-args", action="store_true", help="--offline only: the model includes the port")
     ap.add_argument("--show-schemas", action="store_true", help="print every tool schema in step 2")
-    ap.add_argument("--steps", type=int, default=8, help="step budget")
     a = ap.parse_args()
-    llm = scripted_llm(a.to) if a.offline else call_llm
-    trace = []  # type: List[List[str]]
+    llm = scripted_llm(a.task, a.to, a.bad_args) if a.offline else call_llm
 
     # [1] PROMPT
     messages = [
-        {"role": "system", "content": "You are Nova, the Northwind SOC night-shift assistant. Use the tools to "
-                                      "investigate. Then email a short summary and give your triage: severity, "
-                                      "evidence, actions."},
-        {"role": "user", "content": "Triage NW-4471 and email a two-line summary to %s." % a.to},
+        {"role": "system", "content": "You are Nova, the Northwind SOC night-shift assistant. Use a tool if you "
+                                      "need one, then answer briefly."},
+        {"role": "user", "content": TASKS[a.task].format(to=a.to)},
     ]
     print("=" * 78)
     tag("1 PROMPT", "what the analyst asked")
     show(messages[1]["content"])
     tag("1 PROMPT", "plus the system prompt (Nova's role and rules)")
-    show(messages[0]["content"], 160)
+    show(messages[0]["content"])
 
     # [2] MESSAGES + TOOL LIST
-    tag("2 MESSAGES + TOOL LIST", "sent to %s with model %s%s"
+    tag("2 MESSAGES + TOOL LIST", "request 1 to %s with model %s%s"
         % (base.OLLAMA_URL, base.MODEL, " (offline: scripted replies)" if a.offline else ""))
     tag("2 MESSAGES + TOOL LIST", "tools offered: " + ", ".join(FUNCTIONS))
     tag("2 MESSAGES + TOOL LIST", "schemas generated from the Pydantic classes with model_json_schema():")
     for t in (TOOL_LIST if a.show_schemas else TOOL_LIST[:1]):
         show(t, 700)
     if not a.show_schemas:
-        print("      (one schema shown; --show-schemas prints all 4. They are sent on EVERY request.)")
+        print("      (one schema shown; --show-schemas prints all 4)")
 
-    for step in range(1, a.steps + 1):
-        print("-" * 78)
-        t0 = time.time()
-        raw = llm(messages)
-        msg = raw.get("message", {})
-        calls = base.extract_calls(msg)
+    # [3] LLM, request 1: it may ask for a tool
+    print("-" * 78)
+    t0 = time.time()
+    raw = llm(messages)
+    msg = raw.get("message", {})
+    calls = base.extract_calls(msg)
+    tag("3 LLM", "request 1, %.1f s, %s output tokens" % (time.time() - t0, raw.get("eval_count", "?")))
+    if not calls:
+        tag("3 LLM", "no tool call: it answered straight away. Nothing for your code to run.")
+        print("=" * 78)
+        tag("FINAL ANSWER")
+        show((msg.get("content") or "").strip(), 2000)
+        return
+    tag("3 LLM", "asked for a tool (it does not run anything):")
+    show({"tool_calls": msg.get("tool_calls") or "(written as text, parsed by extract_calls)"})
+    if len(calls) > 1:
+        tag("4 YOUR CODE", "the model asked for %d calls; this mini-lab runs only the first" % len(calls))
+    messages.append({"role": "assistant", "content": msg.get("content", ""),
+                     "tool_calls": (msg.get("tool_calls") or [])[:1]})
 
-        # [3] LLM
-        tag("3 LLM", "step %d, %.1f s, %s output tokens" % (step, time.time() - t0, raw.get("eval_count", "?")))
-        if not calls:
-            tag("3 LLM", "no tool call -> it answered. Loop ends.")
-            print("=" * 78)
-            tag("FINAL ANSWER")
-            show(msg.get("content", "").strip(), 2000)
-            trace.append([str(step), "(answer)", "-", "-"])
-            break
-        tag("3 LLM", "asked for a tool (it does not run anything):")
-        show({"tool_calls": msg.get("tool_calls") or "(written as text, parsed by extract_calls)"})
-        messages.append({"role": "assistant", "content": msg.get("content", ""),
-                         "tool_calls": msg.get("tool_calls") or []})
+    # [4] YOUR CODE and [5] FUNCTIONS, exactly once
+    name, args = calls[0]["name"], calls[0]["arguments"]
+    result, outcome = run_call(name, args)
+    base.audit({"lab": "fc", "tool": name, "args": args,
+                "refused": None if outcome.startswith("ran") else outcome, "hijack": False})
 
-        for c in calls:
-            name, args = c["name"], c["arguments"]
-            # [4] YOUR CODE: 1) Pydantic shape check  2) permission guard  3) route
-            obj, error = validate(name, args)
-            if error:
-                tag("4 YOUR CODE", "Pydantic: REJECTED - the function does not run. Error sent back:")
-                show(error)
-                result = error
-                trace.append([str(step), "%s(%s)" % (name, short(args)), "rejected",
-                              error.get("details", [{}])[0].get("problem", error["error"])])
-            else:
-                model_name = FUNCTIONS[name][1].__name__
-                clean = obj.model_dump(mode="json")
-                tag("4 YOUR CODE", "Pydantic: OK -> %r" % obj)
-                reason = guard(name, clean)
-                if reason:
-                    tag("4 YOUR CODE", "guard: REFUSED - " + reason)
-                    result = {"refused": reason}
-                    trace.append([str(step), "%s(%s)" % (name, short(args)), "refused", reason])
-                else:
-                    tag("4 YOUR CODE", "guard: allowed -> route to %s()" % name)
-                    # [5] FUNCTIONS
-                    result = FUNCTIONS[name][0](**clean)
-                    tag("5 FUNCTIONS", "%s(%s) returned:"
-                        % (name, ", ".join("%s=%s" % (k, json.dumps(v)) for k, v in clean.items())))
-                    show(result)
-                    trace.append([str(step), "%s(%s)" % (name, short(clean)), "ran",
-                                  json.dumps(result, default=str)[:60]])
-            base.audit({"lab": "fc", "tool": name, "args": args,
-                        "refused": None if "refused" not in result and "error" not in result else str(result)[:120],
-                        "hijack": False})
-            # [RESULT BACK]
-            messages.append({"role": "tool", "tool_name": name, "content": json.dumps(result, default=str)})
-            tag("RESULT BACK", "added as a tool message -> %d messages; the LLM reads it next step"
-                % len(messages))
-    else:
-        tag("4 YOUR CODE", "step budget of %d reached, stopping" % a.steps)
+    # [RESULT BACK]
+    messages.append({"role": "tool", "tool_name": name, "content": json.dumps(result, default=str)})
+    tag("RESULT BACK", "added as a tool message -> %d messages" % len(messages))
+
+    # [3] LLM, request 2: NO tools offered, so it can only answer
+    print("-" * 78)
+    t0 = time.time()
+    raw2 = llm(messages, tools=[])
+    tag("3 LLM", "request 2, %.1f s: your code offered NO tools, so the model can only answer" % (time.time() - t0))
+    print("=" * 78)
+    tag("FINAL ANSWER")
+    show((raw2.get("message", {}).get("content") or "").strip(), 2000)
 
     print("=" * 78)
-    tag("TRACE", "one row per trip around the diagram")
-    print("      %-4s %-46s %-9s %s" % ("step", "LLM asked for", "box 4", "result"))
-    for row in trace:
-        print("      %-4s %-46s %-9s %s" % (row[0], row[1][:46], row[2], row[3][:44]))
+    tag("SUMMARY", "1 function call, 2 LLM requests, no loop")
+    print("      request 1: %s  ->  %s" % ("%s(%s)" % (name, ", ".join(str(v) for v in args.values())) if isinstance(args, dict) else name, outcome))
+    print("      request 2: no tools -> final answer")
+    if "validate()" in outcome:
+        print("      No retry: one trip only. In lab5_agent_loop.py the model gets another try and fixes it.")
+    elif "guard()" in outcome:
+        print("      No retry here, and a retry would not help: the recipient is not allowed, whatever the shape.")
 
 
 if __name__ == "__main__":
