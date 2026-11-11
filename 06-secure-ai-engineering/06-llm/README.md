@@ -1,4 +1,4 @@
-# Lab 6 – Make Nova deployment grade
+## Lab 6 – Make Nova deployment grade
 
 Module 6: Secure AI Engineering. About 90 minutes.
 
