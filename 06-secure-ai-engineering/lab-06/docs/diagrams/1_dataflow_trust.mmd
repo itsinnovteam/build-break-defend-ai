@@ -1,0 +1,29 @@
+flowchart LR
+  subgraph EXT[External / untrusted]
+    OUT[Outside submitter<br/>writes ticket comment]
+  end
+  subgraph INT[Internal VM - our control]
+    OP[Operator / analyst]
+    AG[Agent loop]
+    HC{{handle_call<br/>TRUST BOUNDARY}}
+    TOOLS[Tools + MCP server]
+    ST[(Local state<br/>+ audit log)]
+    DATA[(Alerts + ticket data)]
+  end
+  subgraph MOD[Local model]
+    LLM[llama3.1:8b<br/>untrusted decision-maker]
+  end
+  OP -->|F1 task| AG
+  AG -->|F2 task+tools| LLM
+  LLM -.->|F3 proposed call<br/>UNTRUSTED| AG
+  AG -->|F4| HC
+  HC -->|F5 allowed| TOOLS
+  TOOLS --> DATA
+  OUT -.->|poisoned comment| DATA
+  DATA -.->|F7 result incl. comment<br/>UNTRUSTED| AG
+  TOOLS -->|F8| ST
+  HC -.->|F9 approval?| OP
+  classDef danger fill:#FBE6E4,stroke:#C23B3B,color:#8A2B2B;
+  classDef gate fill:#C9821B,stroke:#0F2A44,color:#fff;
+  classDef model fill:#FBF0DC,stroke:#C9821B,color:#0F2A44;
+  class LLM,OUT danger; class HC gate;

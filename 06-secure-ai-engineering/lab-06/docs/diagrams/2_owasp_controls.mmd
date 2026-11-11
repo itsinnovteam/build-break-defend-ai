@@ -1,0 +1,27 @@
+flowchart LR
+  subgraph O[OWASP LLM Top 10 - exposed here]
+    L1[LLM01 Prompt injection]
+    L6[LLM06 Excessive agency]
+    L2[LLM02 Info disclosure]
+    L5[LLM05 Output handling]
+    L10[LLM10 Unbounded use]
+  end
+  subgraph C[Our controls]
+    C1[CTL-01 Least privilege]
+    C4[CTL-04 Output as data]
+    C8[CTL-08 Break trifecta]
+    C2[CTL-02 Human approval]
+    C3[CTL-03 Argument checks]
+    C5[CTL-05 Loop limits]
+    C9[CTL-09 Local hosting]
+  end
+  L1 --> C4
+  L1 --> C1
+  L6 --> C1
+  L6 --> C2
+  L6 --> C3
+  L2 --> C8
+  L2 --> C9
+  L5 --> C4
+  L5 --> C3
+  L10 --> C5

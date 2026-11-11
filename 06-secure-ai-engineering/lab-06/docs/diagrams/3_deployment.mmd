@@ -1,0 +1,8 @@
+flowchart TB
+  Q{How sensitive<br/>is the data?}
+  Q -->|Public| P1[P1 Public SaaS API<br/>low control]
+  Q -->|Internal| P2[P2 Vendor API, region-locked<br/>medium control]
+  Q -->|Confidential| P3[P3 Private cloud / VPC<br/>high control]
+  Q -->|Regulated / this lab| P4[P4 Fully local, on-prem<br/>highest control]
+  classDef pick fill:#E2F2E8,stroke:#2E7D4F,color:#1E5631,stroke-width:2px;
+  class P4 pick;

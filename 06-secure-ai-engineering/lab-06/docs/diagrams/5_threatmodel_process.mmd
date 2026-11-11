@@ -1,0 +1,7 @@
+flowchart LR
+  S1[1. Map the system<br/>components + data flows] --> S2[2. Find trust boundaries<br/>where untrusted input enters]
+  S2 --> S3[3. Name threats<br/>STRIDE per crossing]
+  S3 --> S4[4. Decide each<br/>control OR accept + reason]
+  S4 --> S5[5. Evidence<br/>a test per control]
+  classDef hot fill:#FBE6E4,stroke:#C23B3B,color:#8A2B2B;
+  class S2 hot;
